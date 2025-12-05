@@ -228,6 +228,7 @@ public class SwissMap<K, V> extends AbstractMap<K, V> {
 		vals[idx] = null;
 		size--;
 		tombstones++;
+		maybeResize();
 		return old;
 	}
 
@@ -245,6 +246,7 @@ public class SwissMap<K, V> extends AbstractMap<K, V> {
 		Arrays.fill(vals, null);
 		size = 0;
 		tombstones = 0;
+		maxLoad = calcMaxLoad(capacity);
 	}
 
 	@Override
