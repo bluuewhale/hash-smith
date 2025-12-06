@@ -226,7 +226,7 @@ public class SwissMap<K, V> extends AbstractMap<K, V> {
 				while (eqMask != 0) {
 					int bit = Long.numberOfTrailingZeros(eqMask);
 					int idx = base + bit;
-					if (Objects.equals(keys[idx], key)) {
+					if (Objects.equals(keys[idx], key)) { // almost always true; too bad I can’t hint the compiler
 						@SuppressWarnings("unchecked") V old = (V) vals[idx];
 						vals[idx] = value;
 						return old;
@@ -237,7 +237,7 @@ public class SwissMap<K, V> extends AbstractMap<K, V> {
 					long delMask = simdDeleted(ctrl, base);
 					if (delMask != 0) firstTombstone = base + Long.numberOfTrailingZeros(delMask);
 				}
-				long emptyMask = simdEmpty(ctrl, base);
+				long emptyMask = simdEmpty(ctrl, base); // almost always true
 				if (emptyMask != 0) {
 					int idx = base + Long.numberOfTrailingZeros(emptyMask);
 					int target = (firstTombstone >= 0) ? firstTombstone : idx;
@@ -330,11 +330,15 @@ public class SwissMap<K, V> extends AbstractMap<K, V> {
 				while (eqMask != 0) {
 					int bit = Long.numberOfTrailingZeros(eqMask);
 					int idx = base + bit;
-					if (Objects.equals(keys[idx], key)) return idx;
+					if (Objects.equals(keys[idx], key)) { // almost always true
+						return idx;
+					}
 					eqMask &= eqMask - 1;
 				}
 				long emptyMask = simdEmpty(ctrl, base);
-				if (emptyMask != 0) return -1;
+				if (emptyMask != 0) { // almost always true
+					return -1;
+				}
 			} else {
 				for (int j = 0; j < DEFAULT_GROUP_SIZE; j++) {
 					int idx = base + j;
