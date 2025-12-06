@@ -21,6 +21,11 @@
 - Gradle (use the provided wrapper)
 - JVM flag `--add-modules jdk.incubator.vector` (already configured in Gradle).
 
+## Design Notes
+- Control bytes: `EMPTY=0x80`, `DELETED=0xFE`, low 7 bits store `h2` fingerprint.
+- Group size: 16 slots (aligned to 128-bit SIMD). Load factor ~7/8 triggers resize.
+- Rehash reinserts all entries into a fresh table to clear tombstones.
+
 ## Quick Start
 ```java
 import com.donghyungko.swisstable.SwissMap;
@@ -79,12 +84,6 @@ public class Demo {
 ![Per-entry memory footprint: INT](images/memory-footprint-int.png)
 ![Per-entry memory footprint: SHORT_STR](images/memory-footprint-short-string.png)
 ![Per-entry memory footprint: LONG_STR](images/memory-footprint-long-string.png)
-
-
-## Design Notes
-- Control bytes: `EMPTY=0x80`, `DELETED=0xFE`, low 7 bits store `h2` fingerprint.
-- Group size: 16 slots (aligned to 128-bit SIMD). Load factor ~7/8 triggers resize.
-- Rehash reinserts all entries into a fresh table to clear tombstones.
 
 ## Contributing
 1) Open an issue for bugs/ideas  
