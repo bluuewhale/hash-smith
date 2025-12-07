@@ -104,6 +104,52 @@ public class MapBenchmark {
 		int nextValue() { return ++putValue; }
 	}
 
+	@State(Scope.Thread)
+	public static class RemoveState {
+		@Param({ "100", "1000", "10000" })
+		int size;
+
+		SwissMap<Integer, Integer> swiss;
+		RobinHoodMap<Integer, Integer> robin;
+		HashMap<Integer, Integer> jdk;
+		int[] keys;
+		int[] misses;
+		Random rnd;
+
+		@Setup(Level.Trial)
+		public void initData() {
+			rnd = new Random(789);
+			keys = new int[size];
+			misses = new int[size];
+			var keySet = new java.util.HashSet<>(size * 2);
+			for (int i = 0; i < size; i++) {
+				int k = rnd.nextInt();
+				keys[i] = k;
+				keySet.add(k);
+			}
+			for (int i = 0; i < size; i++) {
+				int miss;
+				do { miss = rnd.nextInt(); } while (keySet.contains(miss));
+				misses[i] = miss;
+			}
+		}
+
+		@Setup(Level.Invocation)
+		public void resetMaps() {
+			swiss = new SwissMap<>();
+			robin = new RobinHoodMap<>();
+			jdk = new HashMap<>();
+			for (int i = 0; i < size; i++) {
+				swiss.put(keys[i], i);
+				robin.put(keys[i], i);
+				jdk.put(keys[i], i);
+			}
+		}
+
+		int hitKey() { return keys[rnd.nextInt(keys.length)]; }
+		int missKey() { return misses[rnd.nextInt(misses.length)]; }
+	}
+
 	// ------- get hit/miss -------
 	@Benchmark
 	public int swissGetHit(ReadState s) {
@@ -198,6 +244,43 @@ public class MapBenchmark {
 	public int jdkPutMiss(MutateState s) {
 		int k = s.missingKey(s.putValue);
 		Integer prev = s.jdk.put(k, s.nextValue());
+		return prev == null ? -1 : prev;
+	}
+
+	// ------- remove hit/miss -------
+	@Benchmark
+	public int swissRemoveHit(RemoveState s) {
+		Integer prev = s.swiss.remove(s.hitKey());
+		return prev == null ? -1 : prev;
+	}
+
+	@Benchmark
+	public int robinRemoveHit(RemoveState s) {
+		Integer prev = s.robin.remove(s.hitKey());
+		return prev == null ? -1 : prev;
+	}
+
+	@Benchmark
+	public int jdkRemoveHit(RemoveState s) {
+		Integer prev = s.jdk.remove(s.hitKey());
+		return prev == null ? -1 : prev;
+	}
+
+	@Benchmark
+	public int swissRemoveMiss(RemoveState s) {
+		Integer prev = s.swiss.remove(s.missKey());
+		return prev == null ? -1 : prev;
+	}
+
+	@Benchmark
+	public int robinRemoveMiss(RemoveState s) {
+		Integer prev = s.robin.remove(s.missKey());
+		return prev == null ? -1 : prev;
+	}
+
+	@Benchmark
+	public int jdkRemoveMiss(RemoveState s) {
+		Integer prev = s.jdk.remove(s.missKey());
 		return prev == null ? -1 : prev;
 	}
 }
