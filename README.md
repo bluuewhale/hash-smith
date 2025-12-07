@@ -12,8 +12,8 @@
 - Built for JDK 21+; SwissMap uses the incubating Vector API for SIMD acceleration.
 
 ## Implementations
-- **SwissMap**: SwissTable-inspired design with SIMD probing, tombstone reuse, and optional scalar fallback. Null keys and null values are allowed. See `docs/SwissMap.md` for details, benchmarks, and memory plots.
-- **RobinHoodMap**: Robin Hood hashing with backward-shift deletion and load factor 0.75. Null keys are not allowed; null values are allowed. See `docs/RobinHoodMap.md` for detailed behavior and notes.
+- **SwissMap**: Google's SwissTable-inspired design with SIMD probing, tombstone reuse, and optional scalar fallback. See `docs/SwissMap.md` for details.
+- **RobinHoodMap**: Robin Hood hashing with backward-shift deletion. See `docs/RobinHoodMap.md` for detailed behavior and notes.
 
 ## Quick Start
 ```java
@@ -22,8 +22,8 @@ import com.donghyungko.hashsmith.RobinHoodMap;
 
 public class Demo {
     public static void main(String[] args) {
-        // SwissMap (SIMD path)
-        var swiss = new SwissMap<String, Integer>(SwissMap.Path.SIMD);
+        // SwissMap
+        var swiss = new SwissMap<String, Integer>();
         swiss.put("a", 1);
         swiss.put("b", 2);
         System.out.println(swiss.get("a")); // 1
@@ -76,7 +76,8 @@ For more details, see `docs/SwissMap.md`.
 ./gradlew test --tests com.donghyungko.hashsmith.MapFootprintTest
 ```
 - SwissMap and RobinHoodMap both use open addressing (no per-entry node objects), reducing space overhead versus `HashMap`.
-- Memory plots for SwissMap are in `docs/SwissMap.md`.
+- SwissMap uses SIMD-assisted probing and keeps a relatively high default load factor (0.875), fitting more entries per capacity for better memory efficiency.
+![Memory Foorprint](images/memory-footprint.png)
 
 ## Documentation
 - SwissMap: `docs/SwissMap.md`
