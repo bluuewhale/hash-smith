@@ -19,7 +19,7 @@ public class MapFootprintTest {
 	private static final int LONG_STR_LEN = 200;
 
 	private enum Payload {
-		INT, SHORT_STR, LONG_STR
+		BOOLEAN, INT, SHORT_STR, LONG_STR
 	}
 
 	@Test
@@ -77,6 +77,7 @@ public class MapFootprintTest {
 	private static Supplier<Object> valueFactory(Payload payload, Random rnd) {
 		return switch (payload) {
 		case INT -> rnd::nextInt;
+		case BOOLEAN -> rnd::nextBoolean;
 		case SHORT_STR -> () -> randomAscii(rnd, SHORT_STR_LEN);
 		case LONG_STR -> () -> randomAscii(rnd, LONG_STR_LEN);
 		};
