@@ -55,6 +55,10 @@ public class Demo {
 ```bash
 ./gradlew jmh
 ```
+- Targets: `HashMap`, `SwissMap`, `RobinHoodMap` with `int -> int` random keys.
+- Data sizes: pre-fill 100 / 1,000 / 10,000 entries before measuring.
+- Workloads: get hit/miss (present/absent keys), put hit (overwrite), put miss (new insert), iterate (entrySet sum).
+- Settings: JMH `@Warmup(3)` / `@Measurement(5)`, reporting average time (ns/op).
 
 ### Results
 | get hit | get miss |
@@ -70,7 +74,6 @@ public class Demo {
 | ![CPU: iterate](images/cpu-iterate.png) |  |
 
 ## Memory Footprint (JOL)
-- JUnit helper at `src/test/java/com/donghyungko/hashsmith/MapFootprintTest.java`.
 - Compares retained heap of `HashMap` vs `SwissMap` vs `RobinHoodMap` for multiple payload sizes.
 - Run:
 ```bash
