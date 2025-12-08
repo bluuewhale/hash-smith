@@ -4,9 +4,9 @@
   <img src="images/logo.png" alt="HashSmith logo" width="330">
 </p>
 
-> Fast, memory-efficient open-addressing hash tables for the JVM (SwissMap with SIMD + RobinHoodMap with Robin Hood probing).
-
 <!-- TODO: Add badges (CI, License, Release) -->
+
+> ⚠️ This project is experimental and not ready for production use.
 
 ## Overview
 - HashSmith provides multiple high-performance hash table implementations optimized for speed and memory efficiency on modern JVMs.
