@@ -174,13 +174,7 @@ public class RobinHoodMap<K, V> extends AbstractMap<K, V> {
 	/* Hash helpers */
 	private int hash(Object key) {
 		if (key == null) throw new NullPointerException("Null keys not supported");
-		int h = key.hashCode();
-		return smear(h);
-	}
-
-	private int smear(int h) {
-		h ^= (h >>> 16);
-		return h;
+		return Hashing.smear(key.hashCode());
 	}
 
 	/* Capacity helpers */

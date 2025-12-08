@@ -98,15 +98,8 @@ public class SwissMap<K, V> extends AbstractMap<K, V> {
 		return (byte) (hash & H2_MASK);
 	}
 
-	/* Hash smearing: lightweight spread similar to java.util.HashMap */
-	private int smear(int h) {
-		h ^= (h >>> 16);
-		return h;
-	}
-
 	private int hash(Object key) {
-		int h = (key == null) ? 0 : key.hashCode();
-		return smear(h);
+		return Hashing.smearedHash(key);
 	}
 
 	/* Capacity/load helpers */
