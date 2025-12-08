@@ -92,7 +92,7 @@ class MapSmokeTest {
 		long afterPopulate = System.nanoTime();
 
 		long startClone = System.nanoTime();
-		var cloned = newMap(spec, n);
+		var cloned = newMap(spec, n/2);
 		for (var e : original.entrySet()) {
 			cloned.put(e.getKey(), e.getValue());
 		}
