@@ -1,4 +1,4 @@
-# HashSmith: High-performance hash tables for Java
+# HashSmith: Fast & memory efficient hash tables for Java
 
 <p align="center">
   <img src="images/logo.png" alt="HashSmith logo" width="330">
