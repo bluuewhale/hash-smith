@@ -83,17 +83,13 @@ dependencies {
 ### Results
 - `SwissMap` and `RobinHoodMap` both use open addressing, reducing space overhead versus `HashMap`.
 - `SwissMap` uses SIMD-assisted probing and keeps a relatively high default load factor (0.875), fitting more entries per capacity for better memory efficiency.
-- Smaller value sizes amplify the memory efficiency gap; in payload-light cases, `SwissMap` cuts retained heap by up to 43.7% versus `HashMap`.
-![Memory Foorprint](images/memory-footprint.png)
+- Smaller value sizes amplify the memory efficiency gap; in payload-light cases, `SwissMap` cuts retained heap by up to 53.3% versus `HashMap`.
+![Memory Foorprint](images/memory-boolean.png)
 
 ## Benchmark (JMH, CPU ns/op)
 ```bash
 ./gradlew jmh
 ```
-- Targets: `HashMap`, `SwissMap`, `RobinHoodMap` with `int -> int` random keys.
-- Data sizes: pre-fill 100 / 1,000 / 10,000 entries before measuring.
-- Workloads: get hit/miss (present/absent keys), put hit (overwrite), put miss (new insert), iterate (entrySet sum).
-- Settings: JMH `@Warmup(3)` / `@Measurement(5)`, reporting average time (ns/op).
 
 ### Results
 | get hit | get miss |
@@ -104,13 +100,6 @@ dependencies {
 | --- | --- |
 | ![CPU: put hit](images/cpu-put-hit.png) | ![CPU: put miss](images/cpu-put-miss.png) |
 
-| rmove hit | remove miss |
-| --- | --- |
-| ![CPU: remove hit](images/cpu-remove-hit.png) | ![CPU: remove miss](images/cpu-remove-miss.png) |
-
-| iterate |  |
-| --- | --- |
-| ![CPU: iterate](images/cpu-iterate.png) |   |
 
 ## Documentation
 - SwissMap: `docs/SwissMap.md`
