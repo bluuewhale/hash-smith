@@ -17,7 +17,7 @@
 ## Implementations
 - **SwissMap**: Google's SwissTable-inspired design with SIMD probing, tombstone reuse, and optional scalar fallback. See `docs/SwissMap.md` for details.
 - **RobinHoodMap**: Robin Hood hashing with backward-shift deletion. See `docs/RobinHoodMap.md` for detailed behavior and notes.
-- **SwissSet **: SwissTable-style hash set with SIMD control-byte probing, tombstone reuse, and null-element support (`SwissSet` class, serves as the SwissHashSet variant).
+- **SwissSet**: SwissTable-style hash set with SIMD control-byte probing, tombstone reuse, and null-element support (`SwissSet` class, serves as the SwissHashSet variant).
 
 ## Quick Start
 ```java
