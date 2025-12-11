@@ -15,7 +15,7 @@
 - More memory-efficient than the built-in JDK `HashMap`; performance depends on workload.
 
 ## Implementations
-- **SwissMap**: Google's SwissTable-inspired design with SIMD probing, tombstone reuse, and optional scalar fallback. See `docs/SwissMap.md` for details.
+- **SwissMap**: Google's SwissTable-inspired design with SIMD probing and tombstone reuse. See `docs/SwissMap.md` for details.
 - **RobinHoodMap**: Robin Hood hashing with backward-shift deletion. See `docs/RobinHoodMap.md` for detailed behavior and notes.
 - **SwissSet**: SwissTable-style hash set with SIMD control-byte probing, tombstone reuse, and null-element support 
 

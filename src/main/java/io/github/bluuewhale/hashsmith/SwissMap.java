@@ -16,8 +16,6 @@ import jdk.incubator.vector.VectorSpecies;
  */
 public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 
-	public enum Path { SCALAR, SIMD }
-
 	/* Control byte values */
 	private static final byte EMPTY = (byte) 0x80;    // empty slot
 	private static final byte DELETED = (byte) 0xFE;  // tombstone
@@ -39,32 +37,18 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	private Object[] keys;   // key storage
 	private Object[] vals;   // value storage
 	private int tombstones;  // deleted slots
-	private boolean useSimd = true;
 
 
 	public SwissMap() {
-		this(16, DEFAULT_LOAD_FACTOR, true);
+		this(16, DEFAULT_LOAD_FACTOR);
 	}
 
 	public SwissMap(int initialCapacity) {
-		this(initialCapacity, DEFAULT_LOAD_FACTOR, true);
-	}
-
-	public SwissMap(Path path) {
-		this(16, DEFAULT_LOAD_FACTOR, path == Path.SIMD);
+		this(initialCapacity, DEFAULT_LOAD_FACTOR);
 	}
 
 	public SwissMap(int initialCapacity, double loadFactor) {
-		this(initialCapacity, loadFactor, true);
-	}
-
-	public SwissMap(Path path, int initialCapacity, double loadFactor) {
-		this(initialCapacity, loadFactor, path == Path.SIMD);
-	}
-
-	private SwissMap(int initialCapacity, double loadFactor, boolean useSimd) {
 		super(initialCapacity, loadFactor);
-		this.useSimd = useSimd;
 	}
 
 	@Override
@@ -110,9 +94,8 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	private boolean isDeleted(byte c) { return c == DELETED; }
 	private boolean isFull(byte c) { return c >= 0 && c <= H2_MASK; } // H2 in [0,127]
 
-	/* SIMD helpers (fallback to 0 mask when not usable) */
+	/* SIMD helpers */
 	private long simdEq(byte[] array, int base, byte value) {
-		if (!useSimd) return 0L;
 		ByteVector v = ByteVector.fromArray(SPECIES, array, base);
 		return v.eq(value).toLong();
 	}
@@ -219,47 +202,26 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		int g = h1 & mask; // optimized modulo operation (same as h1 % nGroups)
 		for (;;) {
 			int base = g * DEFAULT_GROUP_SIZE;
-			if (useSimd) {
-				long eqMask = simdEq(ctrl, base, h2);
-				while (eqMask != 0) {
-					int bit = Long.numberOfTrailingZeros(eqMask);
-					int idx = base + bit;
-					if (Objects.equals(keys[idx], key)) { // almost always true; too bad I can’t hint the compiler
-						@SuppressWarnings("unchecked") V old = (V) vals[idx];
-						vals[idx] = value;
-						return old;
-					}
-					eqMask &= eqMask - 1; // clear LSB
+			long eqMask = simdEq(ctrl, base, h2);
+			while (eqMask != 0) {
+				int bit = Long.numberOfTrailingZeros(eqMask);
+				int idx = base + bit;
+				if (Objects.equals(keys[idx], key)) { // almost always true; too bad I can’t hint the compiler
+					@SuppressWarnings("unchecked") V old = (V) vals[idx];
+					vals[idx] = value;
+					return old;
 				}
-				if (firstTombstone < 0) {
-					long delMask = simdDeleted(ctrl, base);
-					if (delMask != 0) firstTombstone = base + Long.numberOfTrailingZeros(delMask);
-				}
-				long emptyMask = simdEmpty(ctrl, base); // almost always true
-				if (emptyMask != 0) {
-					int idx = base + Long.numberOfTrailingZeros(emptyMask);
-					int target = (firstTombstone >= 0) ? firstTombstone : idx;
-					return insertAt(target, key, value, h2);
-				}
-			} else {
-				for (int j = 0; j < DEFAULT_GROUP_SIZE; j++) {
-					int idx = base + j;
-					byte c = ctrl[idx];
-					if (isEmpty(c)) {
-						int target = (firstTombstone >= 0) ? firstTombstone : idx;
-						return insertAt(target, key, value, h2);
-					}
-					if (isDeleted(c) && firstTombstone < 0) {
-						firstTombstone = idx;
-						continue;
-					}
-					if (isFull(c) && c == h2 && Objects.equals(keys[idx], key)) {
-						@SuppressWarnings("unchecked") 
-						V old = (V) vals[idx];
-						vals[idx] = value;
-						return old;
-					}
-				}
+				eqMask &= eqMask - 1; // clear LSB
+			}
+			if (firstTombstone < 0) {
+				long delMask = simdDeleted(ctrl, base);
+				if (delMask != 0) firstTombstone = base + Long.numberOfTrailingZeros(delMask);
+			}
+			long emptyMask = simdEmpty(ctrl, base); // almost always true
+			if (emptyMask != 0) {
+				int idx = base + Long.numberOfTrailingZeros(emptyMask);
+				int target = (firstTombstone >= 0) ? firstTombstone : idx;
+				return insertAt(target, key, value, h2);
 			}
 			g = (g + 1) & mask;
 		}
@@ -325,29 +287,18 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		int g = h1 & mask; // optimized modulo operation (same as h1 % nGroups)
 		for (;;) {
 			int base = g * DEFAULT_GROUP_SIZE;
-			if (useSimd) {
-				long eqMask = simdEq(ctrl, base, h2);
-				while (eqMask != 0) {
-					int bit = Long.numberOfTrailingZeros(eqMask);
-					int idx = base + bit;
-					if (Objects.equals(keys[idx], key)) { // almost always true
-						return idx;
-					}
-					eqMask &= eqMask - 1;
+			long eqMask = simdEq(ctrl, base, h2);
+			while (eqMask != 0) {
+				int bit = Long.numberOfTrailingZeros(eqMask);
+				int idx = base + bit;
+				if (Objects.equals(keys[idx], key)) { // almost always true
+					return idx;
 				}
-				long emptyMask = simdEmpty(ctrl, base);
-				if (emptyMask != 0) { // almost always true
-					return -1;
-				}
-			} else {
-				for (int j = 0; j < DEFAULT_GROUP_SIZE; j++) {
-					int idx = base + j;
-					byte c = ctrl[idx];
-					if (isEmpty(c)) return -1;
-					if (isFull(c) && c == h2 && Objects.equals(keys[idx], key)) {
-						return idx;
-					}
-				}
+				eqMask &= eqMask - 1;
+			}
+			long emptyMask = simdEmpty(ctrl, base);
+			if (emptyMask != 0) { // almost always true
+				return -1;
 			}
 			g = (g + 1) & mask;
 		}

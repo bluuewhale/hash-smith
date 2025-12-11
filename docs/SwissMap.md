@@ -4,7 +4,7 @@
 
 ## Overview
 - Open addressing with fixed control bytes (`EMPTY`, `DELETED`) and tombstone reuse.
-- SIMD probing on control bytes to find candidate slots quickly; scalar path available as a fallback.
+- SIMD probing on control bytes to find candidate slots quickly; SIMD path is always used.
 - Load factor around 7/8 to balance speed and memory.
 - Null keys and null values are allowed.
 
@@ -19,15 +19,12 @@ import io.github.bluuewhale.hashsmith.SwissMap;
 
 public class Demo {
     public static void main(String[] args) {
-        var map = new SwissMap<String, Integer>(SwissMap.Path.SIMD);
+        var map = new SwissMap<String, Integer>();
         map.put("a", 1);
         map.put("b", 2);
         map.remove("a");
         map.put("a", 3);
         System.out.println(map.get("a")); // 3
-
-        var scalar = new SwissMap<String, Integer>(SwissMap.Path.SCALAR);
-        scalar.put("x", 42);
     }
 }
 ```
@@ -45,4 +42,3 @@ public class Demo {
 
 ## Notes
 - SIMD path uses the JDK Vector API incubator module; ensure the JVM flag is present for any custom runs.
-- Scalar path is available for environments without vector support.
