@@ -60,7 +60,7 @@ mavenPublishing {
     pom {
         name.set("HashSmith")
         description.set("High-performance open-addressing hash tables for the JVM.")
-        url.set("https://github.com/bluuewhale/hashsmith")
+        url.set("https://github.com/bluuewhale/hash-smith")
 
         licenses {
             license {
@@ -76,9 +76,9 @@ mavenPublishing {
             }
         }
         scm {
-            connection.set("scm:git:https://github.com/bluuewhale/hashsmith.git")
-            developerConnection.set("scm:git:ssh://git@github.com:bluuewhale/hashsmith.git")
-            url.set("https://github.com/bluuewhale/hashsmith")
+            connection.set("scm:git:https://github.com/bluuewhale/hash-smith.git")
+            developerConnection.set("scm:git:ssh://git@github.com:bluuewhale/hash-smith.git")
+            url.set("https://github.com/bluuewhale/hash-smith")
         }
     }
 }
