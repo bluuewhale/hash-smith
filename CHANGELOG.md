@@ -1,5 +1,7 @@
 # Changelog
 ## Unreleased
+
+## 0.1.5
 - Fixed `SwissMap` and `SwissSet` to only grow (2x resize) when rehashing due to exceeding `maxLoad`; tombstone-cleanup rehash now keeps the same capacity to prevent unbounded growth under heavy delete workloads.
 - Fixed `SwissMap#retainAll` / `removeAll` (via JDK `AbstractCollection` implementations) potentially throwing `NullPointerException` due to iterator invalidation when a tombstone-cleanup rehash occurred during iteration.
 

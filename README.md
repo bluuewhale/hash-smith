@@ -46,13 +46,13 @@ public class Demo {
 - Gradle (Kotlin DSL):
 ```kotlin
 dependencies {
-    implementation("io.github.bluuewhale:hashsmith:0.1.4")
+    implementation("io.github.bluuewhale:hashsmith:0.1.5")
 }
 ```
 - Gradle (Groovy):
 ```groovy
 dependencies {
-    implementation 'io.github.bluuewhale:hashsmith:0.1.4'
+    implementation 'io.github.bluuewhale:hashsmith:0.1.5'
 }
 ```
 - Maven:
@@ -60,7 +60,7 @@ dependencies {
 <dependency>
   <groupId>io.github.bluuewhale</groupId>
   <artifactId>hashsmith</artifactId>
-  <version>0.1.4</version>
+  <version>0.1.5</version>
 </dependency>
 ```
 
