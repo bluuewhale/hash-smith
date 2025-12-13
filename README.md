@@ -19,6 +19,9 @@
 - **SwissSet**: SwissTable-style hash set with SIMD control-byte probing, tombstone reuse, and null-element support 
 - **RobinHoodMap**: Robin Hood hashing with backward-shift deletion. See `docs/RobinHoodMap.md` for detailed behavior and notes.
 
+## Blog / Write-up
+- If you want a guided tour with design notes and benchmarks, see **[this write-up](https://bluuewhale.github.io/posts/building-a-fast-and-memory-efficient-hash-table-in-java-by-borrowing-the-best-ideas/)**.
+
 ## Quick Start
 ```java
 import io.github.bluuewhale.hashsmith.SwissMap;
