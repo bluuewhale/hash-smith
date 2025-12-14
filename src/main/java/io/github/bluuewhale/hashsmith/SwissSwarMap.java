@@ -238,42 +238,7 @@ public class SwissSwarMap<K, V> extends AbstractArrayMap<K, V> {
 	@Override
 	public V put(K key, V value) {
 		maybeRehash();
-		int h = hash(key);
-		int h1 = h1(h);
-		byte h2 = h2(h);
-		int nGroups = numGroups();
-		int mask = nGroups - 1;
-		int firstTombstone = -1;
-		int visitedGroups = 0;
-		int g = h1 & mask; // optimized modulo operation (same as h1 % nGroups)
-		for (;;) {
-			int base = g * GROUP_SIZE;
-			long word = loadCtrlWord(g);
-			long eqMask = eqMask(word, h2);
-			while (eqMask != 0) {
-				int idx = base + nextEmptySlotIndex(eqMask);
-				if (Objects.equals(keys[idx], key)) {
-					V old = (V) vals[idx];
-					vals[idx] = value;
-					return old;
-				}
-				eqMask &= eqMask - 1; // clear LSB
-			}
-			if (firstTombstone < 0) {
-				long delMask = eqMask(word, DELETED);
-				if (delMask != 0) firstTombstone = base + nextEmptySlotIndex(delMask);
-			}
-			long emptyMask = eqMask(word, EMPTY);
-			if (emptyMask != 0) {
-				int idx = base + nextEmptySlotIndex(emptyMask);
-				int target = (firstTombstone >= 0) ? firstTombstone : idx;
-				return insertAt(target, key, value, h2);
-			}
-			if (++visitedGroups >= nGroups) {
-				throw new IllegalStateException("Probe cycle exhausted; table appears full of tombstones");
-			}
-			g = (g + 1) & mask;
-		}
+        return putVal(key, value);
 	}
 
 	@Override
@@ -302,12 +267,72 @@ public class SwissSwarMap<K, V> extends AbstractArrayMap<K, V> {
 		return old;
 	}
 
-	@Override
-	public void putAll(Map<? extends K, ? extends V> m) {
-		for (Entry<? extends K, ? extends V> e : m.entrySet()) {
-			put(e.getKey(), e.getValue());
-		}
-	}
+    @Override
+    public void putAll(Map<? extends K, ? extends V> m) {
+        if (m.isEmpty()) return;
+
+        // 预先检查是否需要扩容，保持与maybeRehash一致的逻辑
+        boolean overMaxLoad = (size + tombstones + m.size()) >= maxLoad;
+        boolean tooManyTombstones = tombstones > ((size + m.size()) >>> 1);
+
+        if (overMaxLoad || tooManyTombstones) {
+            // 直接使用 newSize 作为新的容量，rehash 方法会自动调整为合适的容量
+            int newSize = this.size + m.size();
+            int newCapacity = overMaxLoad ? Math.max(capacity * 2, GROUP_SIZE) : capacity;
+            // 确保容量足够大以容纳所有元素
+            while (((int) (newCapacity * loadFactor)) < newSize) {
+                newCapacity = Math.max(newCapacity * 2, GROUP_SIZE);
+            }
+            rehash(newCapacity);
+        }
+
+        // 批量插入，避免在每次put时都检查是否需要扩容
+        for (Entry<? extends K, ? extends V> e : m.entrySet()) {
+            putVal(e.getKey(), e.getValue());
+        }
+    }
+
+    /**
+     * 不检查扩容的put方法，用于批量插入优化
+     */
+    private V putVal(K key, V value) {
+        int h = hash(key);
+        int h1 = h1(h);
+        byte h2 = h2(h);
+        int nGroups = numGroups();
+        int mask = nGroups - 1;
+        int firstTombstone = -1;
+        int visitedGroups = 0;
+        int g = h1 & mask; // optimized modulo operation (same as h1 % nGroups)
+        for (;;) {
+            int base = g * GROUP_SIZE;
+            long word = loadCtrlWord(g);
+            long eqMask = eqMask(word, h2);
+            while (eqMask != 0) {
+                int idx = base + nextEmptySlotIndex(eqMask);
+                if (Objects.equals(keys[idx], key)) {
+                    V old = (V) vals[idx];
+                    vals[idx] = value;
+                    return old;
+                }
+                eqMask &= eqMask - 1; // clear LSB
+            }
+            if (firstTombstone < 0) {
+                long delMask = eqMask(word, DELETED);
+                if (delMask != 0) firstTombstone = base + nextEmptySlotIndex(delMask);
+            }
+            long emptyMask = eqMask(word, EMPTY);
+            if (emptyMask != 0) {
+                int idx = base + nextEmptySlotIndex(emptyMask);
+                int target = (firstTombstone >= 0) ? firstTombstone : idx;
+                return insertAt(target, key, value, h2);
+            }
+            if (++visitedGroups >= nGroups) {
+                throw new IllegalStateException("Probe cycle exhausted; table appears full of tombstones");
+            }
+            g = (g + 1) & mask;
+        }
+    }
 
 	@Override
 	public void clear() {
