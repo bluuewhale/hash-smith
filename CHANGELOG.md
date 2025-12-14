@@ -1,7 +1,10 @@
 # Changelog
 ## Unreleased
+
+## 0.1.6
 - Added `SwissSwarMap`: SWAR-based SwissTable variant (8-slot groups, packed control bytes) plus JMH benchmarks alongside SwissMap.
-- Renamed SIMD map to `SwissSimdMap` and SWAR map to `SwissMap`; `SwissMap` now uses SWAR by default while Vector-API SIMD lives in `SwissSimdMap`.
+- Renamed SIMD map to `SwissSimdMap` and SWAR map to `SwissMap`; `SwissMap` is now the SWAR default and Vector-API SIMD lives in `SwissSimdMap`.
+- Updated benchmarks/tests/docs and README guidance (Vector API still incubating; SWAR chosen by default based on profiling).
 
 ## 0.1.5
 - Fixed `SwissMap` and `SwissSet` to only grow (2x resize) when rehashing due to exceeding `maxLoad`; tombstone-cleanup rehash now keeps the same capacity to prevent unbounded growth under heavy delete workloads.
