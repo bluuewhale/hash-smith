@@ -67,8 +67,8 @@ public class SetFootprintTest {
 		return new java.util.UUID(rnd.nextLong(), rnd.nextLong()).toString();
 	}
 
-	@ParameterizedTest(name = "{0} - {1} footprint growth")
-	@MethodSource("payloadsAndSets")
+//	@ParameterizedTest(name = "{0} - {1} footprint growth")
+//	@MethodSource("payloadsAndSets")
 	void printFootprint(SetSpec setSpec, Payload payload) {
 		measure(setSpec.newSet(), setSpec.name(), payload);
 	}

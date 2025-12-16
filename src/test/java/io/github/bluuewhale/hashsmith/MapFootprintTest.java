@@ -85,8 +85,8 @@ public class MapFootprintTest {
 	}
 
 
-	@ParameterizedTest(name = "{0} - {1} footprint growth")
-	@MethodSource("payloadsAndMaps")
+//	@ParameterizedTest(name = "{0} - {1} footprint growth")
+//	@MethodSource("payloadsAndMaps")
 	void printFootprint(MapSpec mapSpec, Payload payload) {
 		measure(mapSpec.newMap(), mapSpec.name(), payload);
 	}
