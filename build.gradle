@@ -50,8 +50,14 @@ jmh {
     fork = 1
     benchmarkMode = ['avgt']
     timeUnit = 'ns'
-    jvmArgs = ['--add-modules', 'jdk.incubator.vector']
+    jvmArgs = [ '--add-modules=jdk.incubator.vector', '--enable-preview' ]
+    jvmArgsAppend = [ '--add-modules=jdk.incubator.vector', '--enable-preview' ]
 }
+
+tasks.named("jmhRunBytecodeGenerator") {
+    jvmArgs = ["--add-modules=jdk.incubator.vector", "--enable-preview"]
+}
+
 
 mavenPublishing {
     publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL)
@@ -85,15 +91,15 @@ mavenPublishing {
 }
 
 signing {
-    def keyFile = System.getenv('GPG_SIGNING_KEY')
-    def pass = System.getenv('GPG_SIGNING_PASSWORD')
+   def keyFile = System.getenv('GPG_SIGNING_KEY')
+   def pass = System.getenv('GPG_SIGNING_PASSWORD')
 
-    if (keyFile && pass) {
-        def keyText = new File(keyFile).getText('UTF-8')
-        useInMemoryPgpKeys(keyText, pass)
-    } else {
-        logger.warn("GPG_SIGNING_KEY / GPG_SIGNING_PASSWORD environment variables are not set")
-    }
+   if (keyFile && pass) {
+       def keyText = new File(keyFile).getText('UTF-8')
+       useInMemoryPgpKeys(keyText, pass)
+   } else {
+       logger.warn("GPG_SIGNING_KEY / GPG_SIGNING_PASSWORD environment variables are not set")
+   }
 }
 
 afterEvaluate {
