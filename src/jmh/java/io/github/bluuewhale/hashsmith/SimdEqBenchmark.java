@@ -42,7 +42,14 @@ import org.openjdk.jmh.infra.Blackhole;
         "-XX:+UnlockDiagnosticVMOptions",
         "-XX:+DebugNonSafepoints",
         "-XX:StartFlightRecording=name=JMHProfile,filename=simd-eq.jfr,settings=profile",
-        "-XX:FlightRecorderOptions=stackdepth=256"
+        "-XX:FlightRecorderOptions=stackdepth=256",
+        "-XX:+UnlockDiagnosticVMOptions",
+        "-XX:+PrintCompilation",
+        "-XX:+PrintInlining",
+        "-XX:+PrintAssembly",
+        "-XX:CompileCommand=print,io.github.bluuewhale.hashsmith.SimdEqBenchmark::eq_toLong",
+        "-XX:CompileCommand=compileonly,io.github.bluuewhale.hashsmith.SimdEqBenchmark::eq_toLong",
+        "-XX:-TieredCompilation"
     }
 )
 @Warmup(iterations = 3)
@@ -142,6 +149,16 @@ public class SimdEqBenchmark {
         for (int i = 0; i < LOOP; i++) {
             bh.consume(eq(s.loaded, s.value));
         }
+    }
+
+    @CompilerControl(CompilerControl.Mode.DONT_INLINE)
+    private static long eq_toLong(ByteVector v, byte value) {
+        return v.eq(value).toLong();
+    }
+
+    @Benchmark
+    public long eq_toLong_only(S s) {
+        return eq_toLong(s.loaded, s.value);
     }
 
     /**
