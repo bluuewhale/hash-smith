@@ -108,11 +108,11 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	protected int eqMask(long word, byte b) {
 		// XOR with the broadcasted fingerprint so that matching bytes become 0 and non-matching stay non-zero.
 		long x = word ^ broadcast(b);
-		//   Let y = (x >>> 1) | 0x80 in each byte lane.
-		//   - If a lane of x is 0x00, then y becomes 0x80 and (y - x) == 0x80,
-		//     so the lane's MSB (0x80) is set.
-		//   - If a lane of x is non-zero, then (y - x) will not leave the lane's MSB
-		//     set in the same reliable way for the final mask extraction.
+		// Let y = (x >>> 1) | 0x80 in each byte lane.
+		// - If a lane of x is 0x00, then y becomes 0x80 and (y - x) == 0x80,
+		//   so the lane's MSB (0x80) is set.
+		// - If a lane of x is non-zero, then (y - x) will not leave the lane's MSB
+		//   set in the same reliable way for the final mask extraction.
 		// Finally, AND with 0x80.. to keep only the MSB bit from each byte lane,
 		// yielding one flag bit per lane at positions 7,15,23,...,63.
 		long m = (((x >>> 1) | BITMASK_MSB) - x) & BITMASK_MSB;
