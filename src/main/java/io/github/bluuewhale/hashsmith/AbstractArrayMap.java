@@ -13,6 +13,9 @@ abstract class AbstractArrayMap<K, V> extends AbstractMap<K, V> {
 	protected double loadFactor;
 
 	protected AbstractArrayMap(int initialCapacity, double loadFactor) {
+		if (initialCapacity < 0) {
+			throw new IllegalArgumentException("initialCapacity must be >= 0: " + initialCapacity);
+		}
 		Utils.validateLoadFactor(loadFactor);
 		this.loadFactor = loadFactor;
 		init(initialCapacity);

@@ -8,36 +8,31 @@ import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 
 class SwissMapRehashResizeTest {
-
-	private static int tombstonesOf(SwissMap<?, ?> m) {
-		try {
-			Field f = SwissMap.class.getDeclaredField("tombstones");
-			f.setAccessible(true);
-			return (int) f.get(m);
-		} catch (ReflectiveOperationException e) {
-			throw new AssertionError("Failed to access SwissMap.tombstones via reflection", e);
-		}
-	}
+    private static int getIntField(Object target, String name) {
+        try {
+            Field f = target.getClass().getDeclaredField(name);
+            f.setAccessible(true);
+            return f.getInt(target);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Failed to read field: " + name, e);
+        }
+    }
 
 	@Test
 	void tombstoneRehashDoesNotResize() {
 		var m = new SwissMap<Integer, Integer>(64);
-		int initialCap = m.capacity;
+        int initialCap = m.capacity;
 
-		// Insert a small fixed set; (size + tombstones) stays constant during deletes,
-		// so we do NOT exceed maxLoad. Eventually tombstones > size/2 triggers rehash.
-		for (int i = 0; i < 16; i++) m.put(i, i * 10);
+		for (int i = 0; i < 32; i++) assertNull(m.put(i, i));
 
-		for (int i = 0; i < 9; i++) {
-			assertEquals(i * 10, m.remove(i));
-		}
+        // Make tombstones dominate (tombstones > size/2) without ever exceeding maxLoad.
+		for (int i = 0; i < 32; i++) assertEquals(i, m.remove(i));
 
-		// Rehash may have happened due to tombstones, but capacity must not grow.
-		assertEquals(initialCap, m.capacity);
-
-		for (int i = 0; i < 9; i++) assertNull(m.get(i));
-		for (int i = 9; i < 16; i++) assertEquals(i * 10, m.get(i));
-		assertEquals(7, m.size());
+        // After the triggering removal, the tombstone-cleanup rehash should have occurred:
+        // tombstones reset to 0, but capacity must remain unchanged.
+        assertEquals(0, getIntField(m, "tombstones"));
+        assertEquals(initialCap, m.capacity);
+        assertEquals(0, m.size());
 	}
 
 	@Test
@@ -71,7 +66,7 @@ class SwissMapRehashResizeTest {
 		// Create 9 tombstones without triggering maybeRehash()
 		for (int i = 0; i < 9; i++) assertNotNull(m.remove(i));
 		assertEquals(18, m.size());
-		assertEquals(9, tombstonesOf(m));
+		assertEquals(9, getIntField(m, "tombstones"));
 		assertEquals(cap0, m.capacity);
 
 		// Batch re-insert 8 of the removed keys: this should mostly reuse tombstones.
@@ -79,7 +74,7 @@ class SwissMapRehashResizeTest {
 		for (int i = 0; i < 8; i++) batch.put(i, i * 2);
 
 		// If we pessimistically assume no tombstone reuse, we'd exceed maxLoad and would resize.
-		int tombstonesBefore = tombstonesOf(m);
+		int tombstonesBefore = getIntField(m, "tombstones");
 		int naiveProjected = m.size + tombstonesBefore + batch.size();
 		assertTrue(naiveProjected >= m.maxLoad);
 
@@ -94,7 +89,7 @@ class SwissMapRehashResizeTest {
 		assertEquals(26, m.size());
 
 		// Tombstones should have been reused (9 -> 1).
-		assertEquals(1, tombstonesOf(m));
+		assertEquals(1, getIntField(m, "tombstones"));
 
 		// Values updated for reinserted keys; key 8 stays absent.
 		for (int i = 0; i < 8; i++) assertEquals(i * 2, m.get(i));
