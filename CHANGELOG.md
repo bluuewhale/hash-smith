@@ -3,6 +3,7 @@
 ### Added
 ### Fixed
 ### Changed
+- `SwissMap` and `SwissSimdMap` probing changed from linear probing to triangular/quadratic probing (group-step sequence `+1, +2, +3, ...`) to reduce primary clustering.
 
 ## 0.1.7
 ### Fixed
