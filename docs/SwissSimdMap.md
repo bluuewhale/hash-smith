@@ -5,8 +5,9 @@
 ## Overview
 - Open addressing with fixed control bytes (`EMPTY`, `DELETED`) and tombstone reuse.
 - SIMD probing on control bytes to find candidate slots quickly; SIMD path is always used.
+- Group-to-group movement uses triangular (quadratic) probing to reduce primary clustering.
 - Load factor around 7/8 to balance speed and memory.
-- Null keys and null values are allowed.
+- Null keys are not supported (consistent with other HashSmith maps); null values are allowed.
 
 ## Requirements
 - JDK 21+ (needs `jdk.incubator.vector`)
@@ -39,6 +40,7 @@ public class Demo {
 - Control bytes: `EMPTY=0x80`, `DELETED=0xFE`; low 7 bits store the `h2` fingerprint.
 - Group size: 16 slots (aligned to SIMD width). Load factor ~7/8 triggers resize.
 - Rehash reinserts all entries into a fresh table to clear tombstones.
+- Quadratic probing makes backward-shift deletion invalid; `removeWithoutTombstone` is implemented as same-capacity rehash.
 
 ## Notes
 - SIMD path uses the JDK Vector API incubator module; ensure the JVM flag is present for any custom runs.

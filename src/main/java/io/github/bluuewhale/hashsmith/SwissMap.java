@@ -83,7 +83,6 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	}
 
 	/* Control byte inspectors */
-	private boolean isEmpty(byte c) { return c == EMPTY; }
 	private boolean isDeleted(byte c) { return c == DELETED; }
 	private boolean isFull(byte c) { return c >= 0 && c <= H2_MASK; } // H2 in [0,127]
 
@@ -182,6 +181,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		byte h2 = h2(h);
 		int mask = groupMask; // Local snapshot of the group mask
 		int g = h1 & mask; // optimized modulo operation (same as h1 % nGroups)
+		int step = 0; // triangular probing step over groups
 		for (;;) {
 			int base = g * GROUP_SIZE;
 			long word = loadCtrlWord(g);
@@ -193,7 +193,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 				size++;
 				return;
 			}
-			g = (g + 1) & mask;
+			g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
 		}
 	}
 
@@ -243,14 +243,16 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 
 	/**
 	 * Testing/benchmark only: delete without leaving a tombstone.
-	 * Fills the hole via backward shift to keep probing contiguous.
+	 * Quadratic probing breaks the contiguity assumption required for backward-shift deletion.
+	 * This method now performs a same-capacity rehash after deletion to ensure there are no tombstones.
 	 */
 	public V removeWithoutTombstone(Object key) {
 		int idx = findIndex(key);
 		if (idx < 0) return null;
 		V old = castValue(vals[idx]);
-		backshiftDelete(idx);
-		size--;
+		setCtrlAt(ctrl, idx, DELETED);
+		setEntryAt(idx, null, null);
+		rehash(capacity);
 		return old;
 	}
 
@@ -289,6 +291,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
         int firstTombstone = -1; 
         int visitedGroups = 0;
         int g = h1 & mask; // optimized modulo operation (same as h1 % nGroups)
+        int step = 0; // triangular probing step over groups
         for (;;) {
             int base = g * GROUP_SIZE;
             long word = loadCtrlWord(g);
@@ -316,7 +319,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
             if (++visitedGroups >= numGroups) {
                 throw new IllegalStateException("Probe cycle exhausted; table appears full of tombstones");
             }
-            g = (g + 1) & mask;
+            g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
         }
     }
 
@@ -356,6 +359,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		int mask = groupMask; // Local snapshot of the mask for the probe loop.
 		int visitedGroups = 0;
 		int g = h1 & mask; // optimized modulo operation (same as h1 % nGroups)
+		int step = 0; // triangular probing step over groups
 		for (;;) {
 			int base = g * GROUP_SIZE;
 			long word = loadCtrlWord(g);
@@ -375,7 +379,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 			if (++visitedGroups >= numGroups) {
 				return -1;
 			}
-			g = (g + 1) & mask;
+			g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
 		}
 	}
 
@@ -387,55 +391,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		return null;
 	}
 
-	/**
-	 * Backward shift delete: pull following entries left to fill the hole with no tombstones.
-	 */
-	private void backshiftDelete(int hole) {
-		// Null out immediately so GC can reclaim.
-		keys[hole] = null;
-		vals[hole] = null;
-
-		final int nGroups = this.numGroups;
-		final int mask = this.groupMask;
-
-		for (;;) {
-			int next = (hole + 1 == capacity) ? 0 : hole + 1;
-			byte c = ctrlAt(ctrl, next);
-
-			// EMPTY means end of cluster; finish by marking current hole empty.
-			if (isEmpty(c)) {
-				setCtrlAt(ctrl, hole, EMPTY);
-				return;
-			}
-
-			// Clear any existing tombstone and move hole forward.
-			if (isDeleted(c)) {
-				if (tombstones > 0) tombstones--;
-				setCtrlAt(ctrl, hole, EMPTY);
-				hole = next;
-				continue;
-			}
-
-			// Compute how far next is from its home group.
-			int h = hash(keys[next]);
-			int home = h1(h) & mask;
-			int group = next / GROUP_SIZE;
-			int dist = (group - home + nGroups) & mask;
-
-			// If entry is in its home group, stop shifting and mark hole empty.
-			if (dist == 0) {
-				setCtrlAt(ctrl, hole, EMPTY);
-				return;
-			}
-
-			// Move displaced entry into the hole.
-			setCtrlAt(ctrl, hole, c);
-			setEntryAt(hole, castKey(keys[next]), castValue(vals[next]));
-			setEntryAt(next, null, null);
-			setCtrlAt(ctrl, next, EMPTY);
-			hole = next;
-		}
-	}
+	// Note: backward-shift deletion intentionally removed; it relies on linear-probe cluster contiguity.
 
 	@SuppressWarnings("unchecked")
 	private V castValue(Object v) {

@@ -226,8 +226,11 @@ public class MapBenchmark {
 		@Setup(Level.Invocation)
 		public void beforeInvocation() {
 			String evictKey = keys[idx];
-			swissSimd.removeWithoutTombstone(evictKey); // SwissSimdMap: delete without tombstones to keep load factor clean
-			swiss.removeWithoutTombstone(evictKey);
+			// Note: SwissMap/SwissSimdMap now use quadratic probing; "tombstone-free delete via backshift"
+			// is no longer compatible. Benchmarks use regular tombstone deletes; maps will periodically
+			// self-rehash when tombstones dominate (see maybeRehash()).
+			swissSimd.remove(evictKey);
+			swiss.remove(evictKey);
 			fastutil.remove(evictKey);
 			unified.remove(evictKey);
 			jdk.remove(evictKey);
