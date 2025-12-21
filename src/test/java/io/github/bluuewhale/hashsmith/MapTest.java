@@ -32,6 +32,13 @@ class MapTest {
 				true
 			),
 			new MapSpec(
+				"ConcurrentSwissMap",
+				ConcurrentSwissMap::new,
+				ConcurrentSwissMap::new,
+				false,
+				true
+			),
+			new MapSpec(
 				"SwissSimdMap",
 				SwissSimdMap::new,
 				SwissSimdMap::new,

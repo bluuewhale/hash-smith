@@ -31,6 +31,24 @@ class MapSmokeTest {
                 0.9
             ),
 			new MapSpec(
+				"ConcurrentSwissMap",
+				() -> new ConcurrentSwissMap<>(16, 0.5),
+				cap -> new ConcurrentSwissMap<>(cap, 0.5),
+				0.5
+			),
+			new MapSpec(
+				"ConcurrentSwissMap",
+				() -> new ConcurrentSwissMap<>(16, 0.75),
+				cap -> new ConcurrentSwissMap<>(cap, 0.75),
+				0.75
+			),
+			new MapSpec(
+				"ConcurrentSwissMap",
+				() -> new ConcurrentSwissMap<>(16, 0.875),
+				cap -> new ConcurrentSwissMap<>(cap, 0.875),
+				0.875
+			),
+			new MapSpec(
                 "SwissMap",
                 () -> new SwissMap<>(16, 0.5),
                 cap -> new SwissMap<>(cap, 0.5),
