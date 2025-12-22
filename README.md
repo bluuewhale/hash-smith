@@ -21,8 +21,8 @@
 ## Implementations
 - **SwissMap**: SwissTable-inspired design using SWAR control-byte probing (no Vector API) with tombstone reuse. Default map.
 - **SwissSimdMap**: SIMD (Vector API incubator) variant of SwissMap with vectorized control-byte probing. See `docs/SwissSimdMap.md` for details.
+- **ConcurrentSwissMap**: sharded, thread-safe wrapper around `SwissMap` using per-shard `StampedLock` (null keys not supported).
 - **SwissSet**: SwissTable-style hash set with SIMD control-byte probing, tombstone reuse, and null-element support 
-- **RobinHoodMap**: Robin Hood hashing with backward-shift deletion. See `docs/RobinHoodMap.md` for detailed behavior and notes.
 
 ### Why SWAR by default?
 Vector API is still incubating, and profiling on my setup showed the SIMD path taking longer than expected, so the default `SwissMap` favors a SWAR probe. Numbers can differ significantly by hardware/JVM version; please run your own benchmarks if you plan to use `SwissSimdMap`.
@@ -34,6 +34,7 @@ Vector API is still incubating, and profiling on my setup showed the SIMD path t
 ```java
 import io.github.bluuewhale.hashsmith.SwissMap;      // SWAR
 import io.github.bluuewhale.hashsmith.SwissSimdMap;  // Vector API
+import io.github.bluuewhale.hashsmith.ConcurrentSwissMap;
 import io.github.bluuewhale.hashsmith.RobinHoodMap;
 import io.github.bluuewhale.hashsmith.SwissSet;
 
@@ -50,6 +51,12 @@ public class Demo {
         swissSimd.put("a", 1);
         swissSimd.put("b", 2);
         System.out.println(swissSimd.get("a")); // 1
+
+        // ConcurrentSwissMap (sharded, thread-safe)
+        var concurrentSwiss = new ConcurrentSwissMap<String, Integer>();
+        concurrentSwiss.put("a", 1);
+        concurrentSwiss.put("b", 2);
+        System.out.println(concurrentSwiss.get("a")); // 1
 
         // SwissSet
         var swissSet = new SwissSet<String>();
