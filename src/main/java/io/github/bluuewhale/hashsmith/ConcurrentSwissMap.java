@@ -75,7 +75,7 @@ public final class ConcurrentSwissMap<K, V> extends AbstractMap<K, V> {
 
 	private static int defaultShardCount() {
 		int cores = Runtime.getRuntime().availableProcessors();
-		return Utils.ceilPow2(Math.max(1, cores * 2));
+		return Utils.ceilPow2(Math.max(1, cores * 4));
 	}
 
 	private static int smearedHashNonNull(Object key) {
