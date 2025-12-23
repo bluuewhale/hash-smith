@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.concurrent.ThreadLocalRandom;
 
 import jdk.incubator.vector.ByteVector;
 import jdk.incubator.vector.VectorSpecies;
@@ -34,6 +35,8 @@ public class SwissSet<E> extends AbstractSet<E> {
 
 	/* Storage */
 	private final double loadFactor;
+	// Fixed per-instance seed (do not re-randomize per iterator creation)
+	private final long iterationSeed;
 	private int groupMask; // cached (nGroups - 1), valid because nGroups is power-of-two
 	private byte[] ctrl;   // control bytes (EMPTY/DELETED/H2 fingerprint)
 	private Object[] keys; // key storage
@@ -53,6 +56,7 @@ public class SwissSet<E> extends AbstractSet<E> {
 	public SwissSet(int initialCapacity, double loadFactor) {
 		Utils.validateLoadFactor(loadFactor);
 		this.loadFactor = loadFactor;
+		this.iterationSeed = ThreadLocalRandom.current().nextLong();
 		init(initialCapacity);
 	}
 
@@ -273,7 +277,7 @@ public class SwissSet<E> extends AbstractSet<E> {
 		private int last = -1;
 
 		BaseIter() {
-			Utils.RandomCycle cycle = new Utils.RandomCycle(capacity);
+			Utils.RandomCycle cycle = new Utils.RandomCycle(capacity, iterationSeed);
 			this.start = cycle.start;
 			this.step = cycle.step;
 			this.mask = cycle.mask;

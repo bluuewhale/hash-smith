@@ -1,6 +1,7 @@
 package io.github.bluuewhale.hashsmith;
 
 import java.util.AbstractMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Shared array-backed Map boilerplate and utilities.
@@ -11,6 +12,8 @@ abstract class AbstractArrayMap<K, V> extends AbstractMap<K, V> {
 	protected int size;
 	protected int maxLoad;
 	protected double loadFactor;
+	// Fixed per-instance seed (do not re-randomize per iterator creation)
+	protected final long iterationSeed;
 
 	protected AbstractArrayMap(int initialCapacity, double loadFactor) {
 		if (initialCapacity < 0) {
@@ -18,6 +21,7 @@ abstract class AbstractArrayMap<K, V> extends AbstractMap<K, V> {
 		}
 		Utils.validateLoadFactor(loadFactor);
 		this.loadFactor = loadFactor;
+		this.iterationSeed = ThreadLocalRandom.current().nextLong();
 		init(initialCapacity);
 	}
 
@@ -70,6 +74,7 @@ abstract class AbstractArrayMap<K, V> extends AbstractMap<K, V> {
 	 */
 	protected static final class RandomCycle extends Utils.RandomCycle {
 		RandomCycle(int capacity) { super(capacity); }
+		RandomCycle(int capacity, long seed) { super(capacity, seed); }
 	}
 }
 

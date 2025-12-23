@@ -243,7 +243,7 @@ public class RobinHoodMap<K, V> extends AbstractArrayMap<K, V> {
 		private boolean canRemove;
 
 		EntryIterator() {
-			RandomCycle cycle = new RandomCycle(capacity);
+			RandomCycle cycle = new RandomCycle(capacity, iterationSeed);
 			this.start = cycle.start;
 			this.step = cycle.step;
 			advance();

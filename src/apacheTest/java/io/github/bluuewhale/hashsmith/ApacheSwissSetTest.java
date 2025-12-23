@@ -9,9 +9,4 @@ final class ApacheSwissSetTest<E> extends AbstractSetTest<E> {
     @Override public Set<E> makeObject() {
         return new SwissSet<>();
     }
-
-    @Disabled("FIXME")
-    @Override public void testCollectionToArray2() {
-        super.testCollectionToArray2();
-    }
 }
