@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.StampedLock;
 
 /**
@@ -33,7 +32,6 @@ public final class ConcurrentSwissMap<K, V> extends AbstractMap<K, V> {
 	private final SwissMap<K, V>[] maps;
 	private final int shardBits;
 	private final int shardShift;
-	private final LongAdder totalSize = new LongAdder();
 
 	public ConcurrentSwissMap() {
 		this(defaultShardCount(), DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR);
@@ -159,11 +157,7 @@ public final class ConcurrentSwissMap<K, V> extends AbstractMap<K, V> {
 
 		long stamp = lock.writeLock();
 		try {
-			int before = map.size();
-			V old = map.put(key, value, h);
-			int after = map.size();
-			if (after != before) totalSize.add((long) after - before);
-			return old;
+			return map.put(key, value, h);
 		} finally {
 			lock.unlockWrite(stamp);
 		}
@@ -178,11 +172,7 @@ public final class ConcurrentSwissMap<K, V> extends AbstractMap<K, V> {
 
 		long stamp = lock.writeLock();
 		try {
-			int before = map.size();
-			V old = map.remove(key, h);
-			int after = map.size();
-			if (after != before) totalSize.add((long) after - before);
-			return old;
+			return map.remove(key, h);
 		} finally {
 			lock.unlockWrite(stamp);
 		}
@@ -212,12 +202,9 @@ public final class ConcurrentSwissMap<K, V> extends AbstractMap<K, V> {
 			SwissMap<K, V> map = maps[i];
 			long stamp = lock.writeLock();
 			try {
-				int before = map.size();
 				for (Entry<? extends K, ? extends V> e : b) {
 					map.put(e.getKey(), e.getValue());
 				}
-				int after = map.size();
-				if (after != before) totalSize.add((long) after - before);
 			} finally {
 				lock.unlockWrite(stamp);
 			}
@@ -231,9 +218,7 @@ public final class ConcurrentSwissMap<K, V> extends AbstractMap<K, V> {
 			SwissMap<K, V> map = maps[i];
 			long stamp = lock.writeLock();
 			try {
-				int before = map.size();
 				map.clear();
-				if (before != 0) totalSize.add(-before);
 			} finally {
 				lock.unlockWrite(stamp);
 			}
@@ -242,12 +227,34 @@ public final class ConcurrentSwissMap<K, V> extends AbstractMap<K, V> {
 
 	@Override
 	public int size() {
-		return totalSize.intValue();
+		long sum = 0L;
+		for (int i = 0; i < maps.length; i++) {
+			StampedLock lock = locks[i];
+			SwissMap<K, V> map = maps[i];
+			long stamp = lock.readLock();
+			try {
+				sum += map.size();
+			} finally {
+				lock.unlockRead(stamp);
+			}
+			if (sum > Integer.MAX_VALUE) return Integer.MAX_VALUE;
+		}
+		return (int) sum;
 	}
 
 	@Override
 	public boolean isEmpty() {
-		return totalSize.sum() == 0L;
+		for (int i = 0; i < maps.length; i++) {
+			StampedLock lock = locks[i];
+			SwissMap<K, V> map = maps[i];
+			long stamp = lock.readLock();
+			try {
+				if (!map.isEmpty()) return false;
+			} finally {
+				lock.unlockRead(stamp);
+			}
+		}
+		return true;
 	}
 
 	@Override
@@ -289,10 +296,7 @@ public final class ConcurrentSwissMap<K, V> extends AbstractMap<K, V> {
 				if (!map.containsKey(key, h)) return false;
 				Object actual = map.get(key, h);
 				if (!Objects.equals(actual, expected)) return false;
-				int before = map.size();
 				map.remove(key, h);
-				int after = map.size();
-				if (after != before) totalSize.add((long) after - before);
 				return true;
 			} finally {
 				lock.unlockWrite(stamp);
