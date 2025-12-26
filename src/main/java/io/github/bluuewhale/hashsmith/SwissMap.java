@@ -136,10 +136,6 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		return toUnsignedByte(b) * BITMASK_LSB;
 	}
 
-	private long loadCtrlWord(int group) {
-		return ctrl[group];
-	}
-
 	/**
 	 * Compare bytes in word against b; return packed 8-bit mask of matches.
 	 * see: https://stackoverflow.com/questions/68695913/how-to-write-a-swar-comparison-which-puts-0xff-in-a-lane-on-matches/68701617#68701617
@@ -218,14 +214,15 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		int h = hash(key);
 		int h1 = h1(h);
 		byte h2 = h2(h);
-		int mask = groupMask; // Local snapshot of the group mask
+		long[] ctrl = this.ctrl; // local snapshot 
+		int mask = groupMask; // local snapshot
 		int g = h1 & mask; // optimized modulo operation (same as h1 % nGroups)
 		int step = 0; // triangular probing step over groups
 		for (;;) {
-			int base = g * GROUP_SIZE;
-			long word = loadCtrlWord(g);
+			long word = ctrl[g];
 			int emptyMask = eqMask(word, EMPTY);
 			if (emptyMask != 0) {
+				int base = g << 3;
 				int idx = base + Integer.numberOfTrailingZeros(emptyMask);
 				// Publish entry first, then mark ctrl as FULL.
 				setEntryAt(idx, key, value);
@@ -337,14 +334,17 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	private V putValHashed(K key, V value, int smearedHash) {
 		int h1 = h1(smearedHash);
 		byte h2 = h2(smearedHash);
-		int mask = groupMask; // Local snapshot of the mask for the probe loop
-		int firstTombstone = -1;
-		int visitedGroups = 0;
+		long[] ctrl = this.ctrl; // local snapshot
+		Object[] keys = this.keys; // local snapshot
+		Object[] vals = this.vals; // local snapshot
+		int mask = groupMask; // local snapshot
 		int g = h1 & mask; // optimized modulo operation (same as h1 % nGroups)
 		int step = 0; // triangular probing step over groups
+		int firstTombstone = -1;
+		int visitedGroups = 0;
 		for (;;) {
-			int base = g * GROUP_SIZE;
-			long word = loadCtrlWord(g);
+			long word = ctrl[g];
+			int base = g << 3;
 			int eqMask = eqMask(word, h2);
 			while (eqMask != 0) {
 				int idx = base + Integer.numberOfTrailingZeros(eqMask);
@@ -418,15 +418,17 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		if (size == 0) return -1;
 		int h1 = h1(smearedHash);
 		byte h2 = h2(smearedHash);
-		int mask = groupMask; // Local snapshot of the mask for the probe loop.
-		int visitedGroups = 0;
+		long[] ctrl = this.ctrl; // local snapshot
+		Object[] keys = this.keys; // local snapshot
+		int mask = groupMask; // local snapshot
 		int g = h1 & mask; // optimized modulo operation (same as h1 % nGroups)
 		int step = 0; // triangular probing step over groups
+		int visitedGroups = 0;
 		for (;;) {
-			int base = g * GROUP_SIZE;
-			long word = loadCtrlWord(g);
+			long word = ctrl[g];
 			int eqMask = eqMask(word, h2);
 			while (eqMask != 0) {
+				int base = g << 3;
 				int idx = base + Integer.numberOfTrailingZeros(eqMask);
 				Object k = keys[idx];
 				// NULL-safe: an optimistic reader may observe ctrl and then see a null key while a writer is publishing.
