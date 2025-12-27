@@ -51,12 +51,47 @@ tasks.register('jitAsm', JavaExec) {
             '-Xms256m',
             '-Xmx256m',
             '-Xbatch',
-            '-XX:TieredStopAtLevel=4',
+            // Force C2 (server compiler) so the assembly reflects final hot-path optimizations.
+            '-XX:-TieredCompilation',
+            '-XX:CICompilerCount=2',
+            '-XX:CompileThreshold=1000',
             // Assembly
             '-XX:+UnlockDiagnosticVMOptions',
             '-XX:+PrintAssembly',
             // Reduce noise: try to compile/print only the method we care about.
             '-XX:CompileCommand=quiet',
+            '-XX:CompileCommand=compileonly,io.github.bluuewhale.hashsmith.SwissMap::findIndexHashed',
+            '-XX:CompileCommand=print,io.github.bluuewhale.hashsmith.SwissMap::findIndexHashed',
+    ]
+}
+
+// JIT / ASM (HotSpot PrintAssembly) runner for ConcurrentSwissMap.get (and the underlying SwissMap probe loop).
+// Usage:
+//   ./gradlew jitAsmConcurrent | tee jit-asm-concurrent.txt
+// NOTE: PrintAssembly requires an hsdis library for your JDK.
+tasks.register('jitAsmConcurrent', JavaExec) {
+    group = 'verification'
+    description = 'Run a small harness that heats up ConcurrentSwissMap.get and prints the generated machine code via -XX:+PrintAssembly (requires hsdis).'
+
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'io.github.bluuewhale.hashsmith.ConcurrentSwissMapAsmProbe'
+
+    jvmArgs = [
+            '-Xms256m',
+            '-Xmx256m',
+            '-Xbatch',
+            // Force C2 (server compiler) so the assembly reflects final hot-path optimizations.
+            '-XX:-TieredCompilation',
+            '-XX:CICompilerCount=2',
+            '-XX:CompileThreshold=1000',
+            // Assembly
+            '-XX:+UnlockDiagnosticVMOptions',
+            '-XX:+PrintAssembly',
+            // Reduce noise: try to compile/print only the methods we care about.
+            '-XX:CompileCommand=quiet',
+            '-XX:CompileCommand=compileonly,io.github.bluuewhale.hashsmith.ConcurrentSwissMap::get',
+            '-XX:CompileCommand=print,io.github.bluuewhale.hashsmith.ConcurrentSwissMap::get',
+            // Also print the underlying SwissMap probe loop to correlate costs.
             '-XX:CompileCommand=compileonly,io.github.bluuewhale.hashsmith.SwissMap::findIndexHashed',
             '-XX:CompileCommand=print,io.github.bluuewhale.hashsmith.SwissMap::findIndexHashed',
     ]
