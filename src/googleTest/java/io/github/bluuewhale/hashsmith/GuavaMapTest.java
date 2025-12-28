@@ -26,6 +26,11 @@ public final class GuavaMapTest extends TestCase {
         suite.addTest(mapTest("SwissSimdMap", generator(SwissSimdMap::new)));
         suite.addTest(mapTest("RobinHoodMap", generator(RobinHoodMap::new)));
         suite.addTest(concurrentMapTest(
+            "LockFreeSwissMap",
+            // Fixed-size table (no resize yet): allocate generously for testlib.
+            generator(() -> new LockFreeSwissMap<>(1 << 16))
+        ));
+        suite.addTest(concurrentMapTest(
             "ConcurrentSwissMap",
             generator(ConcurrentSwissMap::new),
             // FIXME: Iterator.next() must throw NoSuchElementException (not IndexOutOfBoundsException).
