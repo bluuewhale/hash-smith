@@ -528,9 +528,9 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		int step = 0;
 		for (;;) {
 			long word = ctrl[g];
+			int base = g << 3;
 			int eqMask = eqMask(word, h2);
 			while (eqMask != 0) {
-				int base = g << 3;
 				int idx = base + Integer.numberOfTrailingZeros(eqMask);
 				Object k = keys[idx];
 				// Non-concurrent path does not need to keep the NULL-safe check.
@@ -559,9 +559,9 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		for (;;) {
 			// Acquire-load ensures FULL ctrl implies key/value publish is visible.
 			long word = ctrlWordAcquire(ctrl, g);
+			int base = g << 3;
 			int eqMask = eqMask(word, h2);
 			while (eqMask != 0) {
-				int base = g << 3;
 				int idx = base + Integer.numberOfTrailingZeros(eqMask);
 				Object k = keys[idx];
 				// Keep NULL-safe check to survive concurrent deletes without crashing before stamp validation.
