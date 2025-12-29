@@ -32,6 +32,8 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	/* SWAR constants */
 	private static final long BITMASK_LSB = 0x0101010101010101L;
 	private static final long BITMASK_MSB = 0x8080808080808080L;
+	private static final long EMPTY_BROADCAST = broadcast(EMPTY);
+	private static final long DELETED_BROADCAST = broadcast(DELETED);
 
 	/* Storage and state */
 	private long[] ctrl;     // each long packs 8 control bytes
@@ -77,7 +79,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		this.capacity = nGroups * GROUP_SIZE;
 
 		this.ctrl = new long[nGroups];
-		Arrays.fill(this.ctrl, broadcast(EMPTY));
+		Arrays.fill(this.ctrl, EMPTY_BROADCAST);
 		this.keys = new Object[capacity];
 		this.vals = new Object[capacity];
 		this.size = 0;
@@ -190,7 +192,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		return b & 0xFFL;
 	}
 
-	private long broadcast(byte b) {
+	private static long broadcast(byte b) {
 		// Broadcast a single byte to all 8 byte lanes
 		return toUnsignedByte(b) * BITMASK_LSB;
 	}
@@ -200,7 +202,15 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	 * see: https://stackoverflow.com/questions/68695913/how-to-write-a-swar-comparison-which-puts-0xff-in-a-lane-on-matches/68701617#68701617
 	 */
 	protected int eqMask(long word, byte b) {
-		long x = word ^ broadcast(b);
+		return eqMask(word, broadcast(b));
+	}
+
+	/**
+	 * Fast-path: {@code broadcastedByte} must equal {@code toUnsignedByte(b) * BITMASK_LSB}.
+	 * Callers can hoist the broadcast out of hot loops (e.g., h2 is loop-invariant).
+	 */
+	private static int eqMask(long word, long broadcastedByte) {
+		long x = word ^ broadcastedByte;
 		long m = (((x >>> 1) | BITMASK_MSB) - x) & BITMASK_MSB;
 		return (int) ((m * 0x0204_0810_2040_81L) >>> 56);
 	}
@@ -257,7 +267,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		desiredGroups = ceilPow2(desiredGroups);
 		this.capacity = desiredGroups * GROUP_SIZE;
 		this.ctrl = new long[desiredGroups];
-		Arrays.fill(this.ctrl, broadcast(EMPTY));
+		Arrays.fill(this.ctrl, EMPTY_BROADCAST);
 		this.keys = new Object[this.capacity];
 		this.vals = new Object[this.capacity];
 		this.size = 0;
@@ -286,7 +296,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		int step = 0;
 		for (;;) {
 			long word = ctrl[g];
-			int emptyMask = eqMask(word, EMPTY);
+			int emptyMask = eqMask(word, EMPTY_BROADCAST);
 			if (emptyMask != 0) {
 				int base = g << 3;
 				int idx = base + Integer.numberOfTrailingZeros(emptyMask);
@@ -400,6 +410,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	private V putValHashed(K key, V value, int smearedHash) {
 		int h1 = h1(smearedHash);
 		byte h2 = h2(smearedHash);
+		long h2Broadcast = broadcast(h2);
 		long[] ctrl = this.ctrl; // local snapshot
 		Object[] keys = this.keys; // local snapshot
 		Object[] vals = this.vals; // local snapshot
@@ -411,7 +422,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		for (;;) {
 			long word = ctrl[g];
 			int base = g << 3;
-			int eqMask = eqMask(word, h2);
+			int eqMask = eqMask(word, h2Broadcast);
 			while (eqMask != 0) {
 				int idx = base + Integer.numberOfTrailingZeros(eqMask);
 				Object k = keys[idx];
@@ -424,10 +435,10 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 				eqMask &= eqMask - 1; // clear LSB
 			}
 			if (firstTombstone < 0) {
-				int delMask = eqMask(word, DELETED);
+				int delMask = eqMask(word, DELETED_BROADCAST);
 				if (delMask != 0) firstTombstone = base + Integer.numberOfTrailingZeros(delMask);
 			}
-			int emptyMask = eqMask(word, EMPTY);
+			int emptyMask = eqMask(word, EMPTY_BROADCAST);
 			if (emptyMask != 0) {
 				int idx = base + Integer.numberOfTrailingZeros(emptyMask);
 				int target = (firstTombstone >= 0) ? firstTombstone : idx;
@@ -440,6 +451,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	private V putValHashedConcurrent(K key, V value, int smearedHash) {
 		int h1 = h1(smearedHash);
 		byte h2 = h2(smearedHash);
+		long h2Broadcast = broadcast(h2);
 		long[] ctrl = this.ctrl; // local snapshot
 		Object[] keys = this.keys; // local snapshot
 		Object[] vals = this.vals; // local snapshot
@@ -450,7 +462,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		for (;;) {
 			long word = ctrl[g]; // writer-side: plain is fine
 			int base = g << 3;
-			int eqMask = eqMask(word, h2);
+			int eqMask = eqMask(word, h2Broadcast);
 			while (eqMask != 0) {
 				int idx = base + Integer.numberOfTrailingZeros(eqMask);
 				Object k = keys[idx];
@@ -463,10 +475,10 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 				eqMask &= eqMask - 1;
 			}
 			if (firstTombstone < 0) {
-				int delMask = eqMask(word, DELETED);
+				int delMask = eqMask(word, DELETED_BROADCAST);
 				if (delMask != 0) firstTombstone = base + Integer.numberOfTrailingZeros(delMask);
 			}
-			int emptyMask = eqMask(word, EMPTY);
+			int emptyMask = eqMask(word, EMPTY_BROADCAST);
 			if (emptyMask != 0) {
 				int idx = base + Integer.numberOfTrailingZeros(emptyMask);
 				int target = (firstTombstone >= 0) ? firstTombstone : idx;
@@ -478,7 +490,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 
 	@Override
 	public void clear() {
-		Arrays.fill(ctrl, broadcast(EMPTY));
+		Arrays.fill(ctrl, EMPTY_BROADCAST);
 		Arrays.fill(keys, null);
 		Arrays.fill(vals, null);
 		size = 0;
@@ -520,6 +532,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		if (size == 0) return -1;
 		int h1 = h1(smearedHash);
 		byte h2 = h2(smearedHash);
+		long h2Broadcast = toUnsignedByte(h2) * BITMASK_LSB;
 		long[] ctrl = this.ctrl; // local snapshot
 		Object[] keys = this.keys; // local snapshot
 		int mask = ctrl.length - 1; // Derive mask from the array we index into (ctrl) to help JIT range-check elimination.
@@ -528,7 +541,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		for (;;) {
 			long word = ctrl[g];
 			int base = g << 3;
-			int eqMask = eqMask(word, h2);
+			int eqMask = eqMask(word, h2Broadcast);
 			while (eqMask != 0) {
 				int idx = base + Integer.numberOfTrailingZeros(eqMask);
 				Object k = keys[idx];
@@ -538,7 +551,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 				}
 				eqMask &= eqMask - 1; // clear LSB
 			}
-			int emptyMask = eqMask(word, EMPTY);
+			int emptyMask = eqMask(word, EMPTY_BROADCAST);
 			if (emptyMask != 0) {
 				return -1;
 			}
@@ -550,6 +563,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		if (size == 0) return -1;
 		int h1 = h1(smearedHash);
 		byte h2 = h2(smearedHash);
+		long h2Broadcast = toUnsignedByte(h2) * BITMASK_LSB;
 		long[] ctrl = this.ctrl; // local snapshot
 		Object[] keys = this.keys; // local snapshot
 		int mask = ctrl.length - 1;
@@ -559,7 +573,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 			// Acquire-load ensures FULL ctrl implies key/value publish is visible.
 			long word = ctrlWordAcquire(ctrl, g);
 			int base = g << 3;
-			int eqMask = eqMask(word, h2);
+			int eqMask = eqMask(word, h2Broadcast);
 			while (eqMask != 0) {
 				int idx = base + Integer.numberOfTrailingZeros(eqMask);
 				Object k = keys[idx];
@@ -569,7 +583,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 				}
 				eqMask &= eqMask - 1;
 			}
-			int emptyMask = eqMask(word, EMPTY);
+			int emptyMask = eqMask(word, EMPTY_BROADCAST);
 			if (emptyMask != 0) return -1;
 			g = (g + (++step)) & mask;
 		}
