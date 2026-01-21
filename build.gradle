@@ -59,6 +59,22 @@ tasks.withType(Test).configureEach {
     jvmArgs '--add-modules', 'jdk.incubator.vector'
 }
 
+// JMH runs a separate bytecode generator task (jmhRunBytecodeGenerator) which reflectively loads
+// benchmark classes. That generator must also enable the incubator Vector module, otherwise classloading
+// can fail with NoClassDefFoundError: jdk/incubator/vector/* on some platforms.
+tasks.withType(me.champeau.jmh.JmhBytecodeGeneratorTask).configureEach { t ->
+    // Apply at configuration time (helps IDE/task inspection).
+    t.jvmArgs.addAll('--add-modules', 'jdk.incubator.vector')
+    // Re-apply right before execution (guards against later overwrites).
+    t.doFirst {
+        def extra = ['--add-modules', 'jdk.incubator.vector']
+        def current = t.jvmArgs.getOrElse([])
+        if (!current.containsAll(extra)) {
+            t.jvmArgs.addAll(extra)
+        }
+    }
+}
+
 tasks.check.configure {
     dependsOn(tasks.withType(Test))
 }
