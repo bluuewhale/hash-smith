@@ -1,5 +1,7 @@
 # Changelog
 ## Unreleased
+
+## 0.1.8
 ### Added
 - Added `ConcurrentSwissMap`: a sharded, thread-safe wrapper around `SwissMap`. (#10)
 - Added Guava testlib + Apache Commons Collections test suites; expanded `ConcurrentSwissMap` `ConcurrentMap` API and fixed deterministic random-cycle initialization in collection classes. (#11, thanks @ben-manes)
