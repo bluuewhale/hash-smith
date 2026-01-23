@@ -13,7 +13,7 @@
 - `ConcurrentSwissMap` sharding now ignores the lower 7 bits reserved for `SwissMap`'s H2 (control-byte tag) and shards by the remaining high bits (H1).
 - `ConcurrentSwissMap` now reuses the precomputed `Hashing.smearedHash(key)` when calling into per-shard `SwissMap` operations to avoid hashing the same key twice on hot paths (get/containsKey/put/remove).
 
-## 0.1.7
+## 0.1.8
 ### Fixed
 - eqMask zero-byte detection bug caused by cross-byte borrow (Mycroft haszero mask) (#8, thanks to @aqrit)
 

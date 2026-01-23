@@ -27,7 +27,7 @@ body:
     attributes:
       label: HashSmith version
       description: Maven Central version or commit hash.
-      placeholder: "e.g. 0.1.7 / main@<commit>"
+      placeholder: "e.g. 0.1.8 / main@<commit>"
     validations:
       required: true
 

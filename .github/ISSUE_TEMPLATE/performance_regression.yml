@@ -13,7 +13,7 @@ body:
     id: version_bad
     attributes:
       label: Regressed version (or commit)
-      placeholder: "e.g. 0.1.7 / main@<commit>"
+      placeholder: "e.g. 0.1.8 / main@<commit>"
     validations:
       required: true
 
@@ -71,7 +71,7 @@ body:
       render: text
       placeholder: |
         - Before (0.1.6): 50 ns/op
-        - After  (0.1.7): 70 ns/op (+40%)
+        - After  (0.1.8): 70 ns/op (+40%)
         - Tool: JMH 1.37, forks=1, warmup=3, iter=5
     validations:
       required: true
