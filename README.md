@@ -31,38 +31,24 @@ Vector API is still incubating, and profiling on my setup showed the SIMD path t
 ## Quick Start
 ```java
 import io.github.bluuewhale.hashsmith.SwissMap;      // SWAR
-import io.github.bluuewhale.hashsmith.SwissSimdMap;  // Vector API
 import io.github.bluuewhale.hashsmith.ConcurrentSwissMap;
-import io.github.bluuewhale.hashsmith.RobinHoodMap;
 import io.github.bluuewhale.hashsmith.SwissSet;
 
-public class Demo {
-    public static void main(String[] args) {
-        // SwissMap (SWAR)
-        var swiss = new SwissMap<String, Integer>();
-        swiss.put("a", 1);
-        swiss.put("b", 2);
-        System.out.println(swiss.get("a")); // 1
+// SwissMap (SWAR)
+var swiss = new SwissMap<String, Integer>();
+swiss.put("a", 1);
+swiss.get("a"); // 1
 
-        // SwissSimdMap (Vector API incubator)
-        var swissSimd = new SwissSimdMap<String, Integer>();
-        swissSimd.put("a", 1);
-        swissSimd.put("b", 2);
-        System.out.println(swissSimd.get("a")); // 1
+// ConcurrentSwissMap (sharded, thread-safe)
+var concurrentSwiss = new ConcurrentSwissMap<String, Integer>();
+concurrentSwiss.put("a", 1);
+concurrentSwiss.get("a"); // 1
 
-        // ConcurrentSwissMap (sharded, thread-safe)
-        var concurrentSwiss = new ConcurrentSwissMap<String, Integer>();
-        concurrentSwiss.put("a", 1);
-        concurrentSwiss.put("b", 2);
-        System.out.println(concurrentSwiss.get("a")); // 1
-
-        // SwissSet
-        var swissSet = new SwissSet<String>();
-        swissSet.add("k");
-        swissSet.add(null); // nulls allowed
-        System.out.println(swissSet.contains("k")); // true
-    }
-}
+// SwissSet
+var swissSet = new SwissSet<String>();
+swissSet.add("k");
+swissSet.add(null); // nulls allowed
+swissSet.contains("k"); // true
 ```
 
 ## Install
