@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'signing'
     alias libs.plugins.jmh
     alias libs.plugins.maven.publish
 }
@@ -189,15 +190,7 @@ mavenPublishing {
 }
 
 signing {
-    def keyFile = System.getenv('GPG_SIGNING_KEY')
-    def pass = System.getenv('GPG_SIGNING_PASSWORD')
-
-    if (keyFile && pass) {
-        def keyText = new File(keyFile).getText('UTF-8')
-        useInMemoryPgpKeys(keyText, pass)
-    } else {
-        logger.warn("GPG_SIGNING_KEY / GPG_SIGNING_PASSWORD environment variables are not set")
-    }
+    useGpgCmd()
 }
 
 afterEvaluate {
