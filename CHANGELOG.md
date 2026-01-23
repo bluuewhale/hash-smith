@@ -4,6 +4,7 @@
 - Added `ConcurrentSwissMap`: a sharded, thread-safe wrapper around `SwissMap`. (#10)
 - Added Guava testlib + Apache Commons Collections test suites; expanded `ConcurrentSwissMap` `ConcurrentMap` API and fixed deterministic random-cycle initialization in collection classes. (#11, thanks @ben-manes)
 ### Fixed
+- Fixed `./gradlew jmh` failing on macOS/Linux due to missing `--add-modules jdk.incubator.vector` for the JMH bytecode generator task. (#13)
 ### Changed
 - `SwissMap` and `SwissSimdMap` probing changed from linear probing to triangular/quadratic probing (group-step sequence `+1, +2, +3, ...`) to reduce primary clustering. (#9)
 - `SwissMap`: removed the probe-cycle guard and the unused `numGroups` / `visitedGroups` counters (keep only `groupMask`).
