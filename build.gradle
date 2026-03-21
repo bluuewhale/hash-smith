@@ -150,12 +150,102 @@ javadoc {
 }
 
 jmh {
-    warmupIterations = 3
-    iterations = 5
-    fork = 1
     benchmarkMode = ['avgt']
     timeUnit = 'ns'
-    jvmArgs = ['--add-modules', 'jdk.incubator.vector']
+    resultFormat = 'json'
+    jvmArgs = ['--add-modules', 'jdk.incubator.vector', '--enable-preview']
+
+    // Optional: ./gradlew jmh -Pjmh.include=<regex>
+    if (project.hasProperty('jmh.include')) {
+        includes.set([project.findProperty('jmh.include') as String])
+    }
+}
+
+tasks.named('jmh') {
+    doFirst {
+        mkdir 'benchmark-results'
+    }
+    doLast {
+        def ts = java.time.LocalDateTime.now().format(
+            java.time.format.DateTimeFormatter.ofPattern('yyyy-MM-dd_HH-mm-ss'))
+        def src = file("build/results/jmh/results.json")
+        if (src.exists()) {
+            copy {
+                from src
+                into 'benchmark-results'
+                rename { "${ts}_all.json" }
+            }
+            println "JMH result saved to benchmark-results/${ts}_all.json"
+        }
+    }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// JMH convenience tasks
+// Each task: fast mode (fork=1, warmup=2, iter=3), auto-saves JSON result.
+// Support -Pjmh.include=<regex> to narrow the include pattern.
+// ──────────────────────────────────────────────────────────────────────────────
+
+def jmhFastArgs = { String defaultInclude, String label ->
+    return { JavaExec t ->
+        t.group = 'verification'
+        t.description = "Run JMH benchmarks (fast mode) — ${label}"
+
+        t.dependsOn tasks.named('jmhJar')
+
+        t.mainClass = 'org.openjdk.jmh.Main'
+        t.classpath = files(
+            tasks.named('jmhJar').map { it.outputs.files },
+            sourceSets.jmh.runtimeClasspath
+        )
+
+        t.doFirst {
+            def ts = java.time.LocalDateTime.now().format(
+                java.time.format.DateTimeFormatter.ofPattern('yyyy-MM-dd_HH-mm-ss'))
+            mkdir 'benchmark-results'
+            def include = project.hasProperty('jmh.include')
+                ? project.findProperty('jmh.include') as String
+                : defaultInclude
+            t.args = [
+                include,
+                '-f', '1',
+                '-wi', '2',
+                '-w', '3',
+                '-i', '3',
+                '-r', '5',
+                '-bm', 'avgt',
+                '-tu', 'ns',
+                '-rf', 'json',
+                '-rff', "benchmark-results/${ts}_${label}.json",
+                '-jvmArgs', '--add-modules=jdk.incubator.vector --enable-preview'
+            ]
+        }
+    }
+}
+
+tasks.register('jmhFast', JavaExec, jmhFastArgs('.*', 'all'))
+tasks.register('jmhSwissMap', JavaExec, jmhFastArgs('MapBenchmark|SetBenchmark', 'swissmap'))
+tasks.register('jmhConcurrent', JavaExec, jmhFastArgs('ConcurrentSwissMap', 'concurrent'))
+
+// ──────────────────────────────────────────────────────────────────────────────
+// jmhCompare — compare two benchmark JSON result files
+// Usage:
+//   ./gradlew jmhCompare
+//   ./gradlew jmhCompare -Pjmh.baseline=benchmark-results/2026-03-20_all.json
+//   ./gradlew jmhCompare -Pjmh.threshold=5
+// ──────────────────────────────────────────────────────────────────────────────
+tasks.register('jmhCompare', Exec) {
+    group = 'verification'
+    description = 'Compare two JMH JSON result files and report regressions.'
+
+    def args = ['python3', 'scripts/jmh_compare.py']
+    if (project.hasProperty('jmh.baseline')) {
+        args += ['--baseline', project.findProperty('jmh.baseline') as String]
+    }
+    if (project.hasProperty('jmh.threshold')) {
+        args += ['--threshold', project.findProperty('jmh.threshold') as String]
+    }
+    commandLine args
 }
 
 mavenPublishing {

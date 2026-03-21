@@ -74,6 +74,22 @@ HashSmith is a **low-level data structure library**. Peak performance is the pri
 - [ ] Is the memory layout cache-friendly?
 - [ ] Can SWAR or Vector API be applied?
 - [ ] Does the JIT produce clean assembly on this path?
+- [ ] Has a benchmark regression test been run to confirm the change improves (or at minimum does not regress) performance?
+
+### Benchmark regression rule
+
+**Every optimization must be validated with a before/after benchmark comparison.** After any change to a hot path, run the relevant benchmark, save the result, then compare against the pre-change baseline:
+
+```bash
+# Before the change — save a baseline
+./gradlew jmhSwissMap   # or jmhConcurrent, jmh, etc.
+
+# After the change — compare and check for regressions
+./gradlew jmhSwissMap
+./gradlew jmhCompare
+```
+
+A change that cannot demonstrate measurable improvement (or at least no regression) should not be merged. The benchmark result files in `benchmark-results/` serve as the evidence.
 
 ---
 
