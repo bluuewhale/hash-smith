@@ -210,20 +210,21 @@ def jmhFastArgs = { String defaultInclude, String label ->
                 include,
                 '-f', '1',
                 '-wi', '2',
+                '-w', '3',
                 '-i', '3',
+                '-r', '5',
                 '-bm', 'avgt',
                 '-tu', 'ns',
                 '-rf', 'json',
                 '-rff', "benchmark-results/${ts}_${label}.json",
-                '-jvmArgs', '--add-modules=jdk.incubator.vector',
-                '-jvmArgs', '--enable-preview'
+                '-jvmArgs', '--add-modules=jdk.incubator.vector --enable-preview'
             ]
         }
     }
 }
 
 tasks.register('jmhFast', JavaExec, jmhFastArgs('.*', 'all'))
-tasks.register('jmhSwissMap', JavaExec, jmhFastArgs('MapBenchmark|SetBenchmark|SimdEq', 'swissmap'))
+tasks.register('jmhSwissMap', JavaExec, jmhFastArgs('MapBenchmark|SetBenchmark', 'swissmap'))
 tasks.register('jmhConcurrent', JavaExec, jmhFastArgs('ConcurrentSwissMap', 'concurrent'))
 tasks.register('jmhSimd', JavaExec, jmhFastArgs('SimdEqBenchmark', 'simd'))
 

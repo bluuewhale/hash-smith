@@ -39,3 +39,6 @@ Thumbs.db
 # JMH result files — local only; only the directory placeholder is tracked
 benchmark-results/*
 !benchmark-results/.gitkeep
+
+# Superpowers plan/spec files — working documents, not project artifacts
+docs/superpowers/

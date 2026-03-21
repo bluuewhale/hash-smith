@@ -32,7 +32,7 @@ import org.openjdk.jmh.infra.Blackhole;
  * - JFR is enabled per fork to allow inspecting inlining/intrinsics and hot methods.
  */
 @Fork(
-    value = 1,
+    value = 2,
     jvmArgsAppend = {
         "--add-modules=jdk.incubator.vector",
         "--enable-preview",
@@ -45,8 +45,8 @@ import org.openjdk.jmh.infra.Blackhole;
         "-XX:FlightRecorderOptions=stackdepth=256"
     }
 )
-@Warmup(iterations = 3)
-@Measurement(iterations = 5)
+@Warmup(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 2, timeUnit = TimeUnit.SECONDS)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 public class SimdEqBenchmark {
