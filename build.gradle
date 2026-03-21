@@ -226,7 +226,6 @@ def jmhFastArgs = { String defaultInclude, String label ->
 tasks.register('jmhFast', JavaExec, jmhFastArgs('.*', 'all'))
 tasks.register('jmhSwissMap', JavaExec, jmhFastArgs('MapBenchmark|SetBenchmark', 'swissmap'))
 tasks.register('jmhConcurrent', JavaExec, jmhFastArgs('ConcurrentSwissMap', 'concurrent'))
-tasks.register('jmhSimd', JavaExec, jmhFastArgs('SimdEqBenchmark', 'simd'))
 
 // ──────────────────────────────────────────────────────────────────────────────
 // jmhCompare — compare two benchmark JSON result files
