@@ -64,7 +64,6 @@ HashSmith is a **low-level data structure library**. Peak performance is the pri
 - **Optimize aggressively by default.** Do not wait to be asked. Every implementation decision should be evaluated for its performance impact.
 - **Always consider low-level optimizations**: cache line alignment, branch prediction, memory layout, object overhead, JIT-friendliness, SWAR/SIMD techniques.
 - **Micro-optimizations are appropriate here.** This is not application code. Bit manipulation, manual inlining, avoiding allocations, and other low-level tricks are expected and encouraged.
-- **Benchmark before and after any significant change** using JMH (`./gradlew jmh`). Do not assume — measure.
 - **Read JIT output** (`./gradlew jitAsm`) when optimizing hot paths. Verify that the compiler produces the expected assembly.
 - **Avoid abstraction overhead** that degrades throughput — virtual dispatch, boxing, unnecessary object allocation are all suspect in hot paths.
 - **Memory footprint matters** as much as throughput. Prefer compact in-memory representations.
@@ -75,7 +74,6 @@ HashSmith is a **low-level data structure library**. Peak performance is the pri
 - [ ] Is the memory layout cache-friendly?
 - [ ] Can SWAR or Vector API be applied?
 - [ ] Does the JIT produce clean assembly on this path?
-- [ ] Have JMH numbers been compared before/after?
 
 ---
 
