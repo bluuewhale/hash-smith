@@ -12,21 +12,14 @@ import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
 @Fork(
-    value=1,
+    value = 2,
     jvmArgsAppend = {
         "--add-modules=jdk.incubator.vector",
-        "--enable-preview",
-//        "-Xms1g",
-//        "-Xmx1g",
-//        "-XX:+AlwaysPreTouch",
-//        "-XX:+UnlockDiagnosticVMOptions",
-//        "-XX:+DebugNonSafepoints",
-//        "-XX:StartFlightRecording=name=JMHProfile,filename=jmh-profile.jfr,settings=profile",
-//        "-XX:FlightRecorderOptions=stackdepth=256"
+        "--enable-preview"
     }
 )
-@Warmup(iterations = 5)
-@Measurement(iterations = 5)
+@Warmup(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 2, timeUnit = TimeUnit.SECONDS)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 public class MapBenchmark {

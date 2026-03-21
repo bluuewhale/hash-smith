@@ -31,14 +31,14 @@ import org.openjdk.jmh.infra.Blackhole;
  * from the command line (e.g., {@code -t 1}, {@code -t 2}, {@code -t 4}, {@code -t 8}).
  */
 @Fork(
-	value = 1,
+	value = 2,
 	jvmArgsAppend = {
 		"--add-modules=jdk.incubator.vector",
-		"--enable-preview",
+		"--enable-preview"
 	}
 )
-@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Warmup(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 2, timeUnit = TimeUnit.SECONDS)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 public class ConcurrentSwissMapGetTest {
