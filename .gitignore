@@ -35,3 +35,7 @@ Thumbs.db
 
 
 *.jfr
+
+# JMH result files — local only; only the directory placeholder is tracked
+benchmark-results/*
+!benchmark-results/.gitkeep
