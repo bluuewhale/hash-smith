@@ -429,35 +429,65 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		int mask = ctrl.length - 1;
 		int g = h1 & mask; // optimized modulo operation (same as h1 % nGroups)
 		int step = 0; // triangular probing step over groups
-		int firstTombstone = -1;
-		for (;;) {
-			long word = ctrl[g];
-			int base = g << 3;
-			// Hoist both independent SWAR ops adjacently so OOO CPU can pipeline them.
-			int eqM = eqMask(word, h2Broadcast);
-			long emptyBits = hasEmpty(word); // independent of eqM; CPU issues in parallel
-			while (eqM != 0) {
-				int idx = base + Integer.numberOfTrailingZeros(eqM);
-				Object k = keys[idx];
-				// Non-concurrent path does not need to keep the NULL-safe check.
-				if (k == key || k.equals(key)) {
-					V old = castValue(vals[idx]);
-					vals[idx] = value;
-					return old;
+		if (tombstones == 0) {
+			// FAST PATH: no tombstones — DELETED_BROADCAST scan entirely absent from loop body.
+			// firstTombstone variable eliminated; fewer live variables free registers for ILP.
+			// Hoist both independent SWAR ops adjacently so OOO CPU can pipeline them (iter-003).
+			for (;;) {
+				long word = ctrl[g];
+				int base = g << 3;
+				int eqM = eqMask(word, h2Broadcast);
+				long emptyBits = hasEmpty(word); // independent of eqM; CPU issues in parallel
+				while (eqM != 0) {
+					int idx = base + Integer.numberOfTrailingZeros(eqM);
+					Object k = keys[idx];
+					// Non-concurrent path does not need to keep the NULL-safe check.
+					if (k == key || k.equals(key)) {
+						V old = castValue(vals[idx]);
+						vals[idx] = value;
+						return old;
+					}
+					eqM &= eqM - 1; // clear LSB
 				}
-				eqM &= eqM - 1; // clear LSB
+				// emptyBits already computed above; slot offset extracted via trailing-zeros >>> 3.
+				if (emptyBits != 0) {
+					int idx = base + (Long.numberOfTrailingZeros(emptyBits) >>> 3);
+					return insertAt(idx, key, value, h2);
+				}
+				g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
 			}
-			if (firstTombstone < 0 && tombstones > 0) {
-				int delMask = eqMask(word, DELETED_BROADCAST);
-				if (delMask != 0) firstTombstone = base + Integer.numberOfTrailingZeros(delMask);
+		} else {
+			// SLOW PATH: tombstone scan needed — full loop with DELETED_BROADCAST.
+			int firstTombstone = -1;
+			for (;;) {
+				long word = ctrl[g];
+				int base = g << 3;
+				// Hoist both independent SWAR ops adjacently so OOO CPU can pipeline them.
+				int eqM = eqMask(word, h2Broadcast);
+				long emptyBits = hasEmpty(word); // independent of eqM; CPU issues in parallel
+				while (eqM != 0) {
+					int idx = base + Integer.numberOfTrailingZeros(eqM);
+					Object k = keys[idx];
+					// Non-concurrent path does not need to keep the NULL-safe check.
+					if (k == key || k.equals(key)) {
+						V old = castValue(vals[idx]);
+						vals[idx] = value;
+						return old;
+					}
+					eqM &= eqM - 1; // clear LSB
+				}
+				if (firstTombstone < 0) {
+					int delMask = eqMask(word, DELETED_BROADCAST);
+					if (delMask != 0) firstTombstone = base + Integer.numberOfTrailingZeros(delMask);
+				}
+				// emptyBits already computed above; slot offset extracted via trailing-zeros >>> 3.
+				if (emptyBits != 0) {
+					int idx = base + (Long.numberOfTrailingZeros(emptyBits) >>> 3);
+					int target = (firstTombstone >= 0) ? firstTombstone : idx;
+					return insertAt(target, key, value, h2);
+				}
+				g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
 			}
-			// emptyBits already computed above; slot offset extracted via trailing-zeros >>> 3.
-			if (emptyBits != 0) {
-				int idx = base + (Long.numberOfTrailingZeros(emptyBits) >>> 3);
-				int target = (firstTombstone >= 0) ? firstTombstone : idx;
-				return insertAt(target, key, value, h2);
-			}
-			g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
 		}
 	}
 
