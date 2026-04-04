@@ -429,7 +429,6 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		int mask = ctrl.length - 1;
 		int g = h1 & mask; // optimized modulo operation (same as h1 % nGroups)
 		int step = 0; // triangular probing step over groups
-		int firstTombstone = -1;
 		for (;;) {
 			long word = ctrl[g];
 			int base = g << 3;
@@ -447,18 +446,42 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 				}
 				eqM &= eqM - 1; // clear LSB
 			}
-			if (firstTombstone < 0 && tombstones > 0) {
-				int delMask = eqMask(word, DELETED_BROADCAST);
-				if (delMask != 0) firstTombstone = base + Integer.numberOfTrailingZeros(delMask);
-			}
 			// emptyBits already computed above; slot offset extracted via trailing-zeros >>> 3.
 			if (emptyBits != 0) {
-				int idx = base + (Long.numberOfTrailingZeros(emptyBits) >>> 3);
-				int target = (firstTombstone >= 0) ? firstTombstone : idx;
-				return insertAt(target, key, value, h2);
+				int emptyIdx = base + (Long.numberOfTrailingZeros(emptyBits) >>> 3);
+				// Delegate miss-path (tombstone scan + insert) to cold method to keep hot loop compact.
+				return putMiss(key, value, h2, h1, mask, emptyIdx, step, g);
 			}
 			g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
 		}
+	}
+
+	/**
+	 * Cold path for put-miss: called only when no matching key was found.
+	 * Separated from putValHashed so the JIT can compile the hit-path probe loop
+	 * with fewer live variables (no firstTombstone, no DELETED_BROADCAST, no tombstone branch).
+	 */
+	private V putMiss(K key, V value, byte h2, int h1, int mask, int emptyIdx, int probeStep, int emptyGroup) {
+		int target = emptyIdx;
+		if (tombstones > 0) {
+			// Re-probe from the start to find the first tombstone slot to reuse.
+			long[] ctrl = this.ctrl;
+			int g = h1 & mask;
+			int step = 0;
+			for (;;) {
+				long word = ctrl[g];
+				int base = g << 3;
+				int delMask = eqMask(word, DELETED_BROADCAST);
+				if (delMask != 0) {
+					target = base + Integer.numberOfTrailingZeros(delMask);
+					break;
+				}
+				// Stop when we reach the group where the empty slot was found.
+				if (g == emptyGroup && step == probeStep) break;
+				g = (g + (++step)) & mask;
+			}
+		}
+		return insertAt(target, key, value, h2);
 	}
 
 	private V putValHashedConcurrent(K key, V value, int smearedHash) {
