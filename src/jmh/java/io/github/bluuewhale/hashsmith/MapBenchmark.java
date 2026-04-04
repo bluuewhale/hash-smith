@@ -298,7 +298,7 @@ public class MapBenchmark {
         bh.consume(s.swissSimd.put(s.nextHitKey(), s.nextValue()));
 	}
 
-//    @Benchmark
+	@Benchmark
 	public void swissPutHit(PutHitState s, Blackhole bh) {
         bh.consume(s.swiss.put(s.nextHitKey(), s.nextValue()));
 	}
@@ -323,7 +323,7 @@ public class MapBenchmark {
         bh.consume(s.swissSimd.put(s.nextMissKey(), s.nextValue()));
 	}
 
-//    @Benchmark
+	@Benchmark
 	public void swissPutMiss(PutMissState s, Blackhole bh) {
         bh.consume(s.swiss.put(s.nextMissKey(), s.nextValue()));
 	}
