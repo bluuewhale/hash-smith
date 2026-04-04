@@ -96,6 +96,17 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		return (byte) (hash & H2_MASK);
 	}
 
+	/**
+	 * SwissMap-local hash: Fibonacci multiplicative hash (single 64-bit IMULQ) replaces
+	 * the Murmur3 smear chain. Faster on compute-bound small-table paths (PutHit@12K, PutMiss@12K).
+	 * Overrides AbstractArrayMap.hashNonNull so both put and get paths use the same hash.
+	 */
+	@Override
+	protected int hashNonNull(Object key) {
+		if (key == null) throw new NullPointerException("Null keys not supported");
+		return Hashing.fibonacciHash(key.hashCode());
+	}
+
 	private int hash(Object key) {
 		return hashNonNull(key);
 	}
