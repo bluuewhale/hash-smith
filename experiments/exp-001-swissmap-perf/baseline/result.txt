@@ -1,0 +1,19 @@
+Baseline JMH Benchmark Results (2026-04-04)
+Guard: ./gradlew test apacheTest googleTest — BUILD SUCCESSFUL
+Verify: ./gradlew jmhSwissMap
+
+Benchmark                      (size)  Mode  Cnt    Score    Error  Units
+MapBenchmark.swissSimdPutHit    12000  avgt    3    7.921 ±  0.649  ns/op
+MapBenchmark.swissSimdPutHit    48000  avgt    3    9.026 ±  1.024  ns/op
+MapBenchmark.swissSimdPutHit   196000  avgt    3   12.848 ±  8.640  ns/op
+MapBenchmark.swissSimdPutHit   784000  avgt    3   28.689 ± 13.360  ns/op
+MapBenchmark.swissSimdPutMiss   12000  avgt    3   18.443 ± 13.875  ns/op
+MapBenchmark.swissSimdPutMiss   48000  avgt    3   17.949 ± 36.249  ns/op
+MapBenchmark.swissSimdPutMiss  196000  avgt    3   47.211 ± 24.047  ns/op
+MapBenchmark.swissSimdPutMiss  784000  avgt    3  112.932 ± 70.555  ns/op
+
+Key metrics (lower is better — avgt ns/op):
+  PutHit  @ 12K:   7.921 ns/op
+  PutHit  @ 784K: 28.689 ns/op
+  PutMiss @ 12K:  18.443 ns/op
+  PutMiss @ 784K: 112.932 ns/op
