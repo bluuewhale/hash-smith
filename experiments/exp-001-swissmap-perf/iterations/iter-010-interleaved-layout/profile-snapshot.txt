@@ -1,0 +1,25 @@
+# Profile Snapshot: iter-010-interleaved-layout
+# Source: benchmark-results/2026-04-04_23-17-52_swissmap.json (iter-009 final state = iter-006 code, reverted)
+# Note: Latest JSON contains iter-009 h2-XOR result (reverted). iter-006 code is current HEAD.
+# Use iter-006 leaderboard values as current best.
+
+## Current Best (iter-006-loop-specialization, leaderboard #1)
+PutHit@12K:   6.048 ns  (baseline: 7.921, delta: -23.6%)
+PutHit@784K: 28.365 ns  (baseline: 28.689, delta: -1.1%)
+PutMiss@12K: 17.692 ns  (baseline: 18.443, delta: -4.1%)
+PutMiss@784K:60.132 ns  (baseline: 112.932, delta: -46.7%)
+
+## Baseline
+PutHit@12K:   7.921 ns
+PutHit@784K: 28.689 ns
+PutMiss@12K: 18.443 ns
+PutMiss@784K:112.932 ns
+
+## Key observations from SwissMap.java analysis:
+- keys[] and vals[] are separate Object[] arrays
+- At 784K entries: capacity ~896K slots, keys[] ~3.5MB, vals[] ~3.5MB
+- On PutHit: ctrl[] lookup → keys[idx] load (cache miss) → vals[idx] load (likely different cache line = 2nd miss)
+- Interleaved entries[2*i]=key, entries[2*i+1]=val colocates them in same 64-byte cache line
+- Total memory footprint: SAME (two 3.5MB arrays → one 7MB array)
+- Expected savings: 1 L3 miss per PutHit at 784K → ~28ns → ~19ns (-33% theoretical)
+- Bytecode concern: ishl per access, but replacing TWO array accesses with ONE array (stride 2)

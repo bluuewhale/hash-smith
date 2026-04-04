@@ -1,0 +1,30 @@
+# Benchmark Result: iter-010-interleaved-layout
+# Run: 2026-04-04_23-28-44_swissmap.json
+
+## Raw Results (avgt, ns/op)
+PutHit@12K:    6.020 ±  2.174 ns/op
+PutHit@48K:   10.597 ±  1.904 ns/op
+PutHit@196K:  14.901 ±  8.694 ns/op
+PutHit@784K:  31.277 ± 14.170 ns/op
+PutMiss@12K:  18.352 ±  0.308 ns/op
+PutMiss@48K:  16.146 ± 28.946 ns/op
+PutMiss@196K: 55.376 ±  0.767 ns/op
+PutMiss@784K:104.619 ± 72.615 ns/op
+
+## vs Baseline (7.921 / 28.689 / 18.443 / 112.932)
+PutHit@12K:    -24.0% (better)
+PutHit@784K:    +9.0% (WORSE — borderline, <10% guard limit)
+PutMiss@12K:    -0.5% (same)
+PutMiss@784K:   -7.4% (slightly better than baseline)
+
+## vs iter-006 best (6.048 / 28.365 / 17.692 / 60.132)
+PutHit@12K:    -0.5% (same)
+PutHit@784K:  +10.3% (REGRESSION vs best)
+PutMiss@12K:   +3.7% (slight regression)
+PutMiss@784K: +74.0% (MAJOR REGRESSION vs best — 60→104ns)
+
+## Decision: REVERT
+- No metric achieved 10%+ improvement (success criterion not met)
+- PutMiss@784K regressed +74% vs iter-006 (60→104ns)
+- PutHit@784K regressed +9% vs baseline (right at guard limit)
+- Hypothesis disproved: interleaved layout hurt, not helped
