@@ -20,8 +20,8 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	private static final byte EMPTY = (byte) 0x80;    // empty slot
 	private static final byte DELETED = (byte) 0xFE;  // tombstone
 
-	/* Hash split masks: high bits choose group, low 7 bits stored in control byte */
-	private static final int H2_MASK = 0x0000007F;
+	/* Hash split masks: bits 31..25 → h2 fingerprint (7 bits), bits 24..0 → h1 group index (25 bits) */
+	private static final int H1_MASK = 0x01FFFFFF;
 
 	/* Group sizing: SWAR fixed at 8 slots (1 word) */
 	private static final int GROUP_SIZE = 8;
@@ -89,11 +89,11 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 
 	/* Hash split helpers */
 	private int h1(int hash) {
-		return hash >>> 7;
+		return hash & H1_MASK;
 	}
 
 	private byte h2(int hash) {
-		return (byte) (hash & H2_MASK);
+		return (byte) ((hash >>> 25) & 0x7F);
 	}
 
 	/**
@@ -195,7 +195,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 
 	/* Control byte inspectors */
 	private boolean isDeleted(byte c) { return c == DELETED; }
-	private boolean isFull(byte c) { return c >= 0 && c <= H2_MASK; } // H2 in [0,127]
+	private boolean isFull(byte c) { return c >= 0; } // H2 in [0,127]
 
 	/* SWAR helpers */
 	private static long toUnsignedByte(byte b) {
@@ -448,9 +448,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 				long word = ctrl[g];
 				int base = g << 3;
 				int eqM = eqMask(word, h2Broadcast);
-				// tombstones==0: only EMPTY(0x80) has bit7=1; FULL bytes are in [0,127].
-				// DELETED(0xFE) is absent, so word & BITMASK_MSB suffices — 1 op vs 3.
-				long emptyBits = word & BITMASK_MSB; // independent of eqM; CPU issues in parallel
+				long emptyBits = hasEmpty(word); // independent of eqM; CPU issues in parallel
 				while (eqM != 0) {
 					int idx = base + Integer.numberOfTrailingZeros(eqM);
 					Object k = keys[idx];
