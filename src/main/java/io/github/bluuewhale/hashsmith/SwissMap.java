@@ -572,21 +572,26 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		for (;;) {
 			long word = ctrl[g];
 			int base = g << 3;
-			// Hoist emptyMask adjacent to eqMask before the key-equality inner loop so the
-			// OOO CPU can pipeline both independent SWAR computations in parallel (ILP).
+			// SWAR match shortcut: compute eqMask first; if there's a candidate match,
+			// enter the key-equality loop immediately without computing emptyMask.
+			// emptyMask is only needed on the cold path (no h2 match in this group).
+			// This saves one SWAR multiply on the dominant first-probe hit path.
 			int eqMask = eqMask(word, h2Broadcast);
-			int emptyMask = eqMask(word, EMPTY_BROADCAST);
-			while (eqMask != 0) {
-				int idx = base + Integer.numberOfTrailingZeros(eqMask);
-				Object k = keys[idx];
-				// Non-concurrent path does not need to keep the NULL-safe check.
-				if (k == key || k.equals(key)) {
-					return idx;
-				}
-				eqMask &= eqMask - 1; // clear LSB
-			}
-			if (emptyMask != 0) {
-				return -1;
+			if (eqMask != 0) {
+				do {
+					int idx = base + Integer.numberOfTrailingZeros(eqMask);
+					Object k = keys[idx];
+					// Non-concurrent path does not need to keep the NULL-safe check.
+					if (k == key || k.equals(key)) {
+						return idx;
+					}
+					eqMask &= eqMask - 1; // clear LSB
+				} while (eqMask != 0);
+				// Fell through all candidates in this group — check for empty to terminate.
+				if (eqMask(word, EMPTY_BROADCAST) != 0) return -1;
+			} else {
+				// No h2 match — check for empty slot to terminate probe.
+				if (eqMask(word, EMPTY_BROADCAST) != 0) return -1;
 			}
 			g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
 		}
