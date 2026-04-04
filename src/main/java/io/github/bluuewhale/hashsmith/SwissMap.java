@@ -449,14 +449,12 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 				int delMask = eqMask(word, DELETED_BROADCAST);
 				if (delMask != 0) firstTombstone = base + Integer.numberOfTrailingZeros(delMask);
 			}
-			// Use cheap hasEmpty (no multiply) to skip full eqMask on non-terminal groups.
-			if (hasEmpty(word) != 0) {
-				int emptyMask = eqMask(word, EMPTY_BROADCAST);
-				if (emptyMask != 0) {
-					int idx = base + Integer.numberOfTrailingZeros(emptyMask);
-					int target = (firstTombstone >= 0) ? firstTombstone : idx;
-					return insertAt(target, key, value, h2);
-				}
+			// hasEmpty: multiply-free SWAR; slot offset extracted directly via trailing-zeros >>> 3.
+			long emptyBits = hasEmpty(word);
+			if (emptyBits != 0) {
+				int idx = base + (Long.numberOfTrailingZeros(emptyBits) >>> 3);
+				int target = (firstTombstone >= 0) ? firstTombstone : idx;
+				return insertAt(target, key, value, h2);
 			}
 			g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
 		}
@@ -492,9 +490,9 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 				int delMask = eqMask(word, DELETED_BROADCAST);
 				if (delMask != 0) firstTombstone = base + Integer.numberOfTrailingZeros(delMask);
 			}
-			int emptyMask = eqMask(word, EMPTY_BROADCAST);
-			if (emptyMask != 0) {
-				int idx = base + Integer.numberOfTrailingZeros(emptyMask);
+			long emptyBits = hasEmpty(word);
+			if (emptyBits != 0) {
+				int idx = base + (Long.numberOfTrailingZeros(emptyBits) >>> 3);
 				int target = (firstTombstone >= 0) ? firstTombstone : idx;
 				return insertAtConcurrent(target, key, value, h2);
 			}
@@ -565,13 +563,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 				}
 				eqMask &= eqMask - 1; // clear LSB
 			}
-			// Use cheap hasEmpty (no multiply) before full eqMask on non-terminal groups.
-			if (hasEmpty(word) != 0) {
-				int emptyMask = eqMask(word, EMPTY_BROADCAST);
-				if (emptyMask != 0) {
-					return -1;
-				}
-			}
+			if (hasEmpty(word) != 0) return -1;
 			g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
 		}
 	}
@@ -600,8 +592,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 				}
 				eqMask &= eqMask - 1;
 			}
-			int emptyMask = eqMask(word, EMPTY_BROADCAST);
-			if (emptyMask != 0) return -1;
+			if (hasEmpty(word) != 0) return -1;
 			g = (g + (++step)) & mask;
 		}
 	}

@@ -1,0 +1,7 @@
+Benchmark result file: benchmark-results/2026-04-04_22-02-49_swissmap.json
+
+Raw scores (ns/op):
+MapBenchmark.swissSimdPutHit   12000  avgt  3   9.266 ±  1.437
+MapBenchmark.swissSimdPutHit  784000  avgt  3  30.704 ± 16.150
+MapBenchmark.swissSimdPutMiss  12000  avgt  3  18.301 ±  7.886
+MapBenchmark.swissSimdPutMiss 784000  avgt  3  67.799 ± 85.558
