@@ -418,6 +418,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		int mask = ctrl.length - 1;
 		int g = h1 & mask; // optimized modulo operation (same as h1 % nGroups)
 		int step = 0; // triangular probing step over groups
+		boolean hasTombstones = tombstones > 0;
 		int firstTombstone = -1;
 		for (;;) {
 			long word = ctrl[g];
@@ -434,7 +435,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 				}
 				eqMask &= eqMask - 1; // clear LSB
 			}
-			if (firstTombstone < 0) {
+			if (hasTombstones && firstTombstone < 0) {
 				int delMask = eqMask(word, DELETED_BROADCAST);
 				if (delMask != 0) firstTombstone = base + Integer.numberOfTrailingZeros(delMask);
 			}
@@ -458,6 +459,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		int mask = ctrl.length - 1;
 		int g = h1 & mask;
 		int step = 0;
+		boolean hasTombstones = tombstones > 0;
 		int firstTombstone = -1;
 		for (;;) {
 			long word = ctrl[g]; // writer-side: plain is fine
@@ -474,7 +476,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 				}
 				eqMask &= eqMask - 1;
 			}
-			if (firstTombstone < 0) {
+			if (hasTombstones && firstTombstone < 0) {
 				int delMask = eqMask(word, DELETED_BROADCAST);
 				if (delMask != 0) firstTombstone = base + Integer.numberOfTrailingZeros(delMask);
 			}
