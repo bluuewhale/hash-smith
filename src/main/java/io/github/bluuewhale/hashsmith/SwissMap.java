@@ -418,6 +418,37 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		int mask = ctrl.length - 1;
 		int g = h1 & mask; // optimized modulo operation (same as h1 % nGroups)
 		int step = 0; // triangular probing step over groups
+
+		// Fast path: no tombstones (99%+ case) — skip DELETED_BROADCAST scan entirely.
+		// Hoist emptyMask adjacent to eqMask so OOO CPU can pipeline both SWAR ops.
+		if (tombstones == 0) {
+			for (;;) {
+				long word = ctrl[g];
+				int base = g << 3;
+				// Compute both SWAR ops before the key-equality inner loop so the CPU
+				// can execute them in parallel via out-of-order execution.
+				int eqMask = eqMask(word, h2Broadcast);
+				int emptyMask = eqMask(word, EMPTY_BROADCAST);
+				while (eqMask != 0) {
+					int idx = base + Integer.numberOfTrailingZeros(eqMask);
+					Object k = keys[idx];
+					// Non-concurrent path does not need to keep the NULL-safe check.
+					if (k == key || k.equals(key)) {
+						V old = castValue(vals[idx]);
+						vals[idx] = value;
+						return old;
+					}
+					eqMask &= eqMask - 1; // clear LSB
+				}
+				if (emptyMask != 0) {
+					int idx = base + Integer.numberOfTrailingZeros(emptyMask);
+					return insertAt(idx, key, value, h2);
+				}
+				g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
+			}
+		}
+
+		// Slow path: tombstones present — track firstTombstone for reuse.
 		int firstTombstone = -1;
 		for (;;) {
 			long word = ctrl[g];
