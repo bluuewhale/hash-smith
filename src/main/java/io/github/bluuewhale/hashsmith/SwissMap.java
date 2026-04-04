@@ -433,9 +433,11 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		for (;;) {
 			long word = ctrl[g];
 			int base = g << 3;
-			int eqMask = eqMask(word, h2Broadcast);
-			while (eqMask != 0) {
-				int idx = base + Integer.numberOfTrailingZeros(eqMask);
+			// Hoist both independent SWAR ops adjacently so OOO CPU can pipeline them.
+			int eqM = eqMask(word, h2Broadcast);
+			long emptyBits = hasEmpty(word); // independent of eqM; CPU issues in parallel
+			while (eqM != 0) {
+				int idx = base + Integer.numberOfTrailingZeros(eqM);
 				Object k = keys[idx];
 				// Non-concurrent path does not need to keep the NULL-safe check.
 				if (k == key || k.equals(key)) {
@@ -443,14 +445,13 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 					vals[idx] = value;
 					return old;
 				}
-				eqMask &= eqMask - 1; // clear LSB
+				eqM &= eqM - 1; // clear LSB
 			}
 			if (firstTombstone < 0 && tombstones > 0) {
 				int delMask = eqMask(word, DELETED_BROADCAST);
 				if (delMask != 0) firstTombstone = base + Integer.numberOfTrailingZeros(delMask);
 			}
-			// hasEmpty: multiply-free SWAR; slot offset extracted directly via trailing-zeros >>> 3.
-			long emptyBits = hasEmpty(word);
+			// emptyBits already computed above; slot offset extracted via trailing-zeros >>> 3.
 			if (emptyBits != 0) {
 				int idx = base + (Long.numberOfTrailingZeros(emptyBits) >>> 3);
 				int target = (firstTombstone >= 0) ? firstTombstone : idx;
