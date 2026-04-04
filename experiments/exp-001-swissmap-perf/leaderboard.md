@@ -3,4 +3,5 @@
 
 | 순위 | Iteration | 측정값 | delta | 전략 요약 | 상태 |
 |------|-----------|--------|-------|-----------|------|
+| 1 | iter-001-skip-tombstone-scan | PutHit@12K=8.8ns, PutHit@784K=30.0ns, PutMiss@12K=18.2ns, PutMiss@784K=78.7ns | PutMiss@784K -30.3% | tombstones==0일 때 DELETED_BROADCAST eqMask 스캔 건너뜀 | Keep |
 | — | baseline | PutHit@12K=7.9ns, PutHit@784K=28.7ns, PutMiss@12K=18.4ns, PutMiss@784K=112.9ns | — | — | 기준 |
