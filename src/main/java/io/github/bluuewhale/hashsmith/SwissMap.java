@@ -93,7 +93,10 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	}
 
 	private byte h2(int hash) {
-		return (byte) (hash & H2_MASK);
+		// XOR low 7 bits with high 7 bits to draw entropy from both ends of the smeared hash.
+		// High bits (>= bit 25) are not used by h1 for tables up to 128M groups, so no h1/h2 correlation.
+		// More distinct fingerprints reduce false-positive eqMask matches and unnecessary keys[] cache loads.
+		return (byte) ((hash ^ (hash >>> 25)) & H2_MASK);
 	}
 
 	private int hash(Object key) {
