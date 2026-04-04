@@ -1,0 +1,43 @@
+Profile Snapshot — iter-008-insertat-inline
+===========================================
+Date: 2026-04-04
+Source: iter-006-loop-specialization/result.txt (current best, leaderboard #1)
+
+Current Best (iter-006, baseline for comparison):
+  PutHit@12K:   6.048 ns  (-23.6% vs original baseline)
+  PutHit@784K: 28.365 ns  (-1.1%  vs original baseline)
+  PutMiss@12K: 17.692 ns  (-4.1%  vs original baseline)
+  PutMiss@784K: 60.132 ns (-46.7% vs original baseline)
+
+Original Baseline:
+  PutHit@12K:   7.921 ns
+  PutHit@784K: 28.689 ns
+  PutMiss@12K: 18.443 ns
+  PutMiss@784K: 112.932 ns
+
+Latest benchmark-results JSON (2026-04-04_22-55-30, reflects iter-007 reverted state):
+  swissSimdPutHit@12000:   9.014 ns/op  (post-revert noise — JIT not warmed)
+  swissSimdPutHit@784000: 28.162 ns/op
+  swissSimdPutMiss@12000: 17.465 ns/op
+  swissSimdPutMiss@784000: 123.172 ns/op
+  Note: iter-007 was reverted; these numbers include JIT noise from the revert run.
+
+Hot Path Analysis — insertAt() on tombstones==0 fast path:
+  insertAt body:
+    if (isDeleted(ctrlAt(ctrl, idx))) tombstones--;  // ALWAYS FALSE on fast path
+    setEntryAt(idx, key, value);
+    setCtrlAt(ctrl, idx, h2);
+    size++;
+    return null;
+
+  Dead code on tombstones==0 fast path:
+    - isDeleted() check → always false (tombstones==0 means no DELETED slots)
+    - ctrlAt() call → memory read that is never acted upon
+    - tombstones-- decrement → dead
+    - Method call boundary itself → stack frame push/pop, register save/restore
+
+  Expected gains from inlining:
+    1. Eliminate method call overhead (saved JVM stack frame)
+    2. Eliminate dead isDeleted branch + ctrlAt load
+    3. Better register allocation: JIT can see full fast-path as single compilation unit
+    4. Potential for better instruction scheduling across the entire fast path
