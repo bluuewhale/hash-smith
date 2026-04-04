@@ -247,7 +247,7 @@ public class MapBenchmark {
 		bh.consume(s.swissSimd.get(s.nextHitKey()));
 	}
 
-//	@Benchmark
+	@Benchmark
 	public void swissGetHit(ReadState s, Blackhole bh) {
 		bh.consume(s.swiss.get(s.nextHitKey()));
 	}
@@ -272,7 +272,7 @@ public class MapBenchmark {
 		bh.consume(s.swissSimd.get(s.nextMissingKey()));
 	}
 
-//	@Benchmark
+	@Benchmark
 	public void swissGetMiss(ReadState s, Blackhole bh) {
 		bh.consume(s.swiss.get(s.nextMissingKey()));
 	}

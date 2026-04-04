@@ -572,7 +572,10 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		for (;;) {
 			long word = ctrl[g];
 			int base = g << 3;
+			// Hoist emptyMask adjacent to eqMask before the key-equality inner loop so the
+			// OOO CPU can pipeline both independent SWAR computations in parallel (ILP).
 			int eqMask = eqMask(word, h2Broadcast);
+			int emptyMask = eqMask(word, EMPTY_BROADCAST);
 			while (eqMask != 0) {
 				int idx = base + Integer.numberOfTrailingZeros(eqMask);
 				Object k = keys[idx];
@@ -582,7 +585,6 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 				}
 				eqMask &= eqMask - 1; // clear LSB
 			}
-			int emptyMask = eqMask(word, EMPTY_BROADCAST);
 			if (emptyMask != 0) {
 				return -1;
 			}
