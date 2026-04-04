@@ -1,0 +1,21 @@
+Benchmark: iter-003-findindex-ilp
+Date: 2026-04-05
+Change: ILP hoisting — emptyMask computed adjacent to eqMask in findIndexHashed
+
+Benchmark                  (size)  Mode  Cnt   Score    Error  Units
+MapBenchmark.swissGetHit    12000  avgt    3   4.946 ±  0.564  ns/op
+MapBenchmark.swissGetHit    48000  avgt    3   5.500 ±  0.232  ns/op
+MapBenchmark.swissGetHit   196000  avgt    3   8.266 ±  9.925  ns/op
+MapBenchmark.swissGetHit   784000  avgt    3  15.763 ±  6.124  ns/op
+MapBenchmark.swissGetMiss   12000  avgt    3   5.008 ±  1.174  ns/op
+MapBenchmark.swissGetMiss   48000  avgt    3   5.945 ±  7.544  ns/op
+MapBenchmark.swissGetMiss  196000  avgt    3  12.163 ±  4.381  ns/op
+MapBenchmark.swissGetMiss  784000  avgt    3  14.276 ±  4.108  ns/op
+MapBenchmark.swissPutHit    12000  avgt    3   6.701 ±  2.253  ns/op
+MapBenchmark.swissPutHit    48000  avgt    3   7.391 ±  0.606  ns/op
+MapBenchmark.swissPutHit   196000  avgt    3  10.362 ±  4.303  ns/op
+MapBenchmark.swissPutHit   784000  avgt    3  23.848 ± 18.626  ns/op
+MapBenchmark.swissPutMiss   12000  avgt    3  16.968 ±  1.496  ns/op
+MapBenchmark.swissPutMiss   48000  avgt    3  20.943 ± 37.585  ns/op
+MapBenchmark.swissPutMiss  196000  avgt    3  46.154 ±  6.567  ns/op
+MapBenchmark.swissPutMiss  784000  avgt    3  69.910 ± 99.725  ns/op
