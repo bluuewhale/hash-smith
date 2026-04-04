@@ -407,6 +407,17 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	 *
 	 * Precondition: {@code smearedHash} must be {@link Hashing#smearedHash(Object)} for {@code key}.
 	 */
+	/**
+	 * Fast "has any empty slot?" check using SWAR without a multiply.
+	 * XOR with EMPTY_BROADCAST converts EMPTY (0x80) bytes to 0x00, then applies hasZero:
+	 * hasZero(v) = (v - BITMASK_LSB) &amp; ~v &amp; BITMASK_MSB
+	 * Returns non-zero iff at least one empty slot exists in the group word.
+	 */
+	private static long hasEmpty(long word) {
+		long x = word ^ EMPTY_BROADCAST; // EMPTY bytes become 0x00
+		return (x - BITMASK_LSB) & ~x & BITMASK_MSB;
+	}
+
 	private V putValHashed(K key, V value, int smearedHash) {
 		int h1 = h1(smearedHash);
 		byte h2 = h2(smearedHash);
@@ -434,15 +445,18 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 				}
 				eqMask &= eqMask - 1; // clear LSB
 			}
-			if (firstTombstone < 0) {
+			if (firstTombstone < 0 && tombstones > 0) {
 				int delMask = eqMask(word, DELETED_BROADCAST);
 				if (delMask != 0) firstTombstone = base + Integer.numberOfTrailingZeros(delMask);
 			}
-			int emptyMask = eqMask(word, EMPTY_BROADCAST);
-			if (emptyMask != 0) {
-				int idx = base + Integer.numberOfTrailingZeros(emptyMask);
-				int target = (firstTombstone >= 0) ? firstTombstone : idx;
-				return insertAt(target, key, value, h2);
+			// Use cheap hasEmpty (no multiply) to skip full eqMask on non-terminal groups.
+			if (hasEmpty(word) != 0) {
+				int emptyMask = eqMask(word, EMPTY_BROADCAST);
+				if (emptyMask != 0) {
+					int idx = base + Integer.numberOfTrailingZeros(emptyMask);
+					int target = (firstTombstone >= 0) ? firstTombstone : idx;
+					return insertAt(target, key, value, h2);
+				}
 			}
 			g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
 		}
@@ -551,9 +565,12 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 				}
 				eqMask &= eqMask - 1; // clear LSB
 			}
-			int emptyMask = eqMask(word, EMPTY_BROADCAST);
-			if (emptyMask != 0) {
-				return -1;
+			// Use cheap hasEmpty (no multiply) before full eqMask on non-terminal groups.
+			if (hasEmpty(word) != 0) {
+				int emptyMask = eqMask(word, EMPTY_BROADCAST);
+				if (emptyMask != 0) {
+					return -1;
+				}
 			}
 			g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
 		}
