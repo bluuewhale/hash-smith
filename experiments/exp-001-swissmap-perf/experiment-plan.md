@@ -35,6 +35,25 @@ SwissMap의 전반적 성능 지표 개선:
 ```
 ./gradlew jmhSwissMap
 ```
+결과 확인 시 `swissPutHit` / `swissPutMiss` 행만 참조 (SwissMap 측정값).
+`swissSimdPutHit` / `swissSimdPutMiss` 행은 SwissSimdMap이므로 무시.
+
+## SwissMap Baseline (iter-016 기준, 2026-04-04)
+
+벤치마크 픽스(swissPutHit/swissPutMiss 활성화) 이후 측정한 실제 SwissMap 기준값:
+
+| Benchmark              | size   | Score (ns/op) | Error      |
+|------------------------|--------|---------------|------------|
+| swissPutHit            | 12000  | 8.125         | ± 5.040    |
+| swissPutHit            | 48000  | 9.928         | ± 5.635    |
+| swissPutHit            | 196000 | 15.149        | ± 25.086   |
+| swissPutHit            | 784000 | 26.870        | ± 23.887   |
+| swissPutMiss           | 12000  | 14.105        | ± 13.599   |
+| swissPutMiss           | 48000  | 29.806        | ± 132.646  |
+| swissPutMiss           | 196000 | 65.240        | ± 63.244   |
+| swissPutMiss           | 784000 | 83.272        | ± 5.647    |
+
+상세 결과: `baseline/swissmap-result.txt`
 
 ## 반복 횟수
 50회

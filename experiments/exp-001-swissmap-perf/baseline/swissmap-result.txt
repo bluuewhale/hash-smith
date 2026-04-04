@@ -1,0 +1,19 @@
+SwissMap Baseline JMH Results (post-iter-011 optimizations)
+Date: 2026-04-04
+Note: swissPutHit/swissPutMiss benchmark enabled for SwissMap
+
+Benchmark                 (size)  Mode  Cnt   Score     Error  Units
+MapBenchmark.swissPutHit   12000  avgt    3   8.125 ±   5.040  ns/op
+MapBenchmark.swissPutHit   48000  avgt    3   9.928 ±   5.635  ns/op
+MapBenchmark.swissPutHit  196000  avgt    3  15.149 ±  25.086  ns/op
+MapBenchmark.swissPutHit  784000  avgt    3  26.870 ±  23.887  ns/op
+MapBenchmark.swissPutMiss  12000  avgt    3  14.105 ±  13.599  ns/op
+MapBenchmark.swissPutMiss  48000  avgt    3  29.806 ± 132.646  ns/op
+MapBenchmark.swissPutMiss 196000  avgt    3  65.240 ±  63.244  ns/op
+MapBenchmark.swissPutMiss 784000  avgt    3  83.272 ±   5.647  ns/op
+
+Key metrics (lower is better — avgt ns/op):
+  PutHit  @ 12K:   8.125 ns/op
+  PutHit  @ 784K:  26.870 ns/op
+  PutMiss @ 12K:   14.105 ns/op
+  PutMiss @ 784K:  83.272 ns/op
