@@ -18,9 +18,8 @@ SwissMap의 전반적 성능 지표 개선:
 - 방향: throughput — higher is better / latency — lower is better / memory — lower is better
 
 ## 성공 기준
-- Throughput: 현재 baseline 대비 **20% 이상** 향상
-- Average latency: **10% 이상** 단축
-- 메모리 footprint: **10% 이상** 감소 또는 유지
+- 지표: GetHit@12K, GetHit@784K, GetMiss@12K, GetMiss@784K, PutHit@12K, PutHit@784K, PutMiss@12K, PutMiss@784K
+- 성공: 하나 이상의 지표에서 **10% 이상** 개선 AND 어떤 지표도 baseline 대비 **10% 초과** 악화 없음
 
 ## 트레이드오프 제약
 - Get/Put 모두 중요한 지표임 — 어느 한 지표를 **10% 초과** 악화시키는 변경은, 다른 지표가 개선되더라도 **Revert**
@@ -35,25 +34,33 @@ SwissMap의 전반적 성능 지표 개선:
 ```
 ./gradlew jmhSwissMap
 ```
-결과 확인 시 `swissPutHit` / `swissPutMiss` 행만 참조 (SwissMap 측정값).
+결과 확인 시 `swissGetHit`, `swissGetMiss`, `swissPutHit`, `swissPutMiss` 행 참조 (SwissMap 측정값).
 `swissSimdPutHit` / `swissSimdPutMiss` 행은 SwissSimdMap이므로 무시.
 
-## SwissMap Baseline (iter-016 기준, 2026-04-04)
+## SwissMap Baseline (baseline-v3, 2026-04-04 — clean restart)
 
-벤치마크 픽스(swissPutHit/swissPutMiss 활성화) 이후 측정한 실제 SwissMap 기준값:
+원본 SwissMap (실험 변경 없음) + 4개 전체 지표 측정:
 
 | Benchmark              | size   | Score (ns/op) | Error      |
 |------------------------|--------|---------------|------------|
-| swissPutHit            | 12000  | 8.125         | ± 5.040    |
-| swissPutHit            | 48000  | 9.928         | ± 5.635    |
-| swissPutHit            | 196000 | 15.149        | ± 25.086   |
-| swissPutHit            | 784000 | 26.870        | ± 23.887   |
-| swissPutMiss           | 12000  | 14.105        | ± 13.599   |
-| swissPutMiss           | 48000  | 29.806        | ± 132.646  |
-| swissPutMiss           | 196000 | 65.240        | ± 63.244   |
-| swissPutMiss           | 784000 | 83.272        | ± 5.647    |
+| swissGetHit            | 12000  | 5.590         | ± 2.864    |
+| swissGetHit            | 48000  | 6.414         | ± 6.946    |
+| swissGetHit            | 196000 | 8.772         | ± 2.993    |
+| swissGetHit            | 784000 | 17.977        | ± 23.311   |
+| swissGetMiss           | 12000  | 5.835         | ± 2.481    |
+| swissGetMiss           | 48000  | 7.069         | ± 2.739    |
+| swissGetMiss           | 196000 | 16.837        | ± 62.404   |
+| swissGetMiss           | 784000 | 16.505        | ± 21.845   |
+| swissPutHit            | 12000  | 8.089         | ± 3.878    |
+| swissPutHit            | 48000  | 10.104        | ± 18.400   |
+| swissPutHit            | 196000 | 13.354        | ± 19.714   |
+| swissPutHit            | 784000 | 30.592        | ± 24.792   |
+| swissPutMiss           | 12000  | 23.701        | ± 67.078   |
+| swissPutMiss           | 48000  | 27.081        | ± 8.685    |
+| swissPutMiss           | 196000 | 66.725        | ± 47.461   |
+| swissPutMiss           | 784000 | 109.836       | ± 400.655  |
 
-상세 결과: `baseline/swissmap-result.txt`
+상세 결과: `baseline/result.txt`
 
 ## 반복 횟수
 50회

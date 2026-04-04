@@ -1,19 +1,33 @@
-Baseline JMH Benchmark Results (2026-04-04)
+Original SwissMap Baseline (pre-optimization)
+Date: 2026-04-04
+Benchmark: swissGetHit, swissGetMiss, swissPutHit, swissPutMiss (SwissMap only)
 Guard: ./gradlew test apacheTest googleTest — BUILD SUCCESSFUL
 Verify: ./gradlew jmhSwissMap
 
-Benchmark                      (size)  Mode  Cnt    Score    Error  Units
-MapBenchmark.swissSimdPutHit    12000  avgt    3    7.921 ±  0.649  ns/op
-MapBenchmark.swissSimdPutHit    48000  avgt    3    9.026 ±  1.024  ns/op
-MapBenchmark.swissSimdPutHit   196000  avgt    3   12.848 ±  8.640  ns/op
-MapBenchmark.swissSimdPutHit   784000  avgt    3   28.689 ± 13.360  ns/op
-MapBenchmark.swissSimdPutMiss   12000  avgt    3   18.443 ± 13.875  ns/op
-MapBenchmark.swissSimdPutMiss   48000  avgt    3   17.949 ± 36.249  ns/op
-MapBenchmark.swissSimdPutMiss  196000  avgt    3   47.211 ± 24.047  ns/op
-MapBenchmark.swissSimdPutMiss  784000  avgt    3  112.932 ± 70.555  ns/op
+Benchmark                  (size)  Mode  Cnt    Score     Error  Units
+MapBenchmark.swissGetHit    12000  avgt    3    5.590 ±   2.864  ns/op
+MapBenchmark.swissGetHit    48000  avgt    3    6.414 ±   6.946  ns/op
+MapBenchmark.swissGetHit   196000  avgt    3    8.772 ±   2.993  ns/op
+MapBenchmark.swissGetHit   784000  avgt    3   17.977 ±  23.311  ns/op
+MapBenchmark.swissGetMiss   12000  avgt    3    5.835 ±   2.481  ns/op
+MapBenchmark.swissGetMiss   48000  avgt    3    7.069 ±   2.739  ns/op
+MapBenchmark.swissGetMiss  196000  avgt    3   16.837 ±  62.404  ns/op
+MapBenchmark.swissGetMiss  784000  avgt    3   16.505 ±  21.845  ns/op
+MapBenchmark.swissPutHit    12000  avgt    3    8.089 ±   3.878  ns/op
+MapBenchmark.swissPutHit    48000  avgt    3   10.104 ±  18.400  ns/op
+MapBenchmark.swissPutHit   196000  avgt    3   13.354 ±  19.714  ns/op
+MapBenchmark.swissPutHit   784000  avgt    3   30.592 ±  24.792  ns/op
+MapBenchmark.swissPutMiss   12000  avgt    3   23.701 ±  67.078  ns/op
+MapBenchmark.swissPutMiss   48000  avgt    3   27.081 ±   8.685  ns/op
+MapBenchmark.swissPutMiss  196000  avgt    3   66.725 ±  47.461  ns/op
+MapBenchmark.swissPutMiss  784000  avgt    3  109.836 ± 400.655  ns/op
 
-Key metrics (lower is better — avgt ns/op):
-  PutHit  @ 12K:   7.921 ns/op
-  PutHit  @ 784K: 28.689 ns/op
-  PutMiss @ 12K:  18.443 ns/op
-  PutMiss @ 784K: 112.932 ns/op
+Key metrics (lower is better):
+  GetHit  @ 12K:    5.590 ns/op
+  GetHit  @ 784K:  17.977 ns/op
+  GetMiss @ 12K:    5.835 ns/op
+  GetMiss @ 784K:  16.505 ns/op
+  PutHit  @ 12K:    8.089 ns/op
+  PutHit  @ 784K:  30.592 ns/op
+  PutMiss @ 12K:   23.701 ns/op
+  PutMiss @ 784K: 109.836 ns/op
