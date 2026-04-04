@@ -1,0 +1,29 @@
+# iter-014 Benchmark Results
+
+## Strategy: fast-empty-tombstone0
+Replace hasEmpty(word) with word & BITMASK_MSB in tombstones==0 fast path only.
+
+## Benchmark run
+File: benchmark-results/2026-04-05_03-11-54_swissmap.json
+
+Benchmark                      (size)  Mode  Cnt   Score    Error  Units
+MapBenchmark.swissSimdPutHit    12000  avgt    3  10.788 ± 14.627  ns/op
+MapBenchmark.swissSimdPutHit    48000  avgt    3  10.614 ±  9.010  ns/op
+MapBenchmark.swissSimdPutHit   196000  avgt    3  18.754 ± 71.510  ns/op
+MapBenchmark.swissSimdPutHit   784000  avgt    3  31.058 ± 27.539  ns/op
+MapBenchmark.swissSimdPutMiss   12000  avgt    3  19.671 ±  9.101  ns/op
+MapBenchmark.swissSimdPutMiss   48000  avgt    3  23.550 ± 95.054  ns/op
+MapBenchmark.swissSimdPutMiss  196000  avgt    3  61.320 ± 74.184  ns/op
+MapBenchmark.swissSimdPutMiss  784000  avgt    3  76.234 ± 47.897  ns/op
+
+## vs iter-011 baseline (primary metrics)
+- PutHit@12K:  10.788 vs 5.954 → +81.2% WORSE ❌ (but error ± 14.627 is huge)
+- PutHit@784K: 31.058 vs 26.435 → +17.5% WORSE ❌
+- PutMiss@12K: 19.671 vs 17.006 → +15.7% WORSE ❌
+
+## Decision: REVERT
+All primary metrics worse. Reverted via `git revert HEAD`.
+
+## Note on noise
+Error bars are very large (±14.6 on 10.8 score for PutHit@12K). The real change
+may be neutral or slightly positive, but per protocol any metric >10% worse triggers revert.

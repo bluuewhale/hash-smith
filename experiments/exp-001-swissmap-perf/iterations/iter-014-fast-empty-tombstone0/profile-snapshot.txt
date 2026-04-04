@@ -1,0 +1,45 @@
+# Profile Snapshot — iter-014
+
+## Current base: iter-011 (kept)
+- PutHit@12K:  5.954 ns/op  (-24.8% vs baseline 7.921)
+- PutHit@784K: 26.435 ns/op (-7.9%  vs baseline 28.689)
+- PutMiss@12K: 17.006 ns/op (-7.8%  vs baseline 18.443)
+- PutMiss@784K: noisy (not reliable metric)
+
+## Latest benchmark JSON (iter-013 run, reverted)
+File: benchmark-results/2026-04-05_03-00-53_swissmap.json
+- swissSimdPutHit@12000:  7.042 +/- 9.299  ns/op
+- swissSimdPutHit@48000:  10.016 +/- 2.635 ns/op
+- swissSimdPutHit@196000: 16.677 +/- 23.977 ns/op
+- swissSimdPutHit@784000: 33.587 +/- 43.736 ns/op
+- swissSimdPutMiss@12000:  21.012 +/- 4.214 ns/op
+- swissSimdPutMiss@48000:  20.397 +/- 38.178 ns/op
+- swissSimdPutMiss@196000: 70.193 +/- 42.420 ns/op
+- swissSimdPutMiss@784000: 91.350 +/- 476.776 ns/op
+(Note: those were from iter-013, which was reverted. iter-011 baseline is current.)
+
+## Strategy: fast-empty-tombstone0
+Replace 3-op hasEmpty() with 1-op BITMASK_MSB AND in tombstones==0 fast path.
+
+## Reasoning
+In the tombstones==0 fast path:
+- FULL slots store h2 in [0, 127] → high bit (bit 7) = 0
+- DELETED slots (0xFE) → high bit = 1, but DELETED count == tombstones == 0 → never present
+- EMPTY slots (0x80) → high bit = 1
+
+Therefore: `word & BITMASK_MSB != 0` iff any EMPTY slot exists.
+This replaces `hasEmpty(word)` (XOR + subtract + AND = 3 ops) with `word & BITMASK_MSB` (1 op).
+
+hasEmpty() is defined as:
+  long x = word ^ EMPTY_BROADCAST;  // XOR
+  return (x - BITMASK_LSB) & ~x & BITMASK_MSB;  // subtract + not + AND x2
+
+In tombstones==0: only EMPTY (0x80) or FULL (0x00-0x7F) bytes exist.
+  - FULL: bit7=0
+  - EMPTY: bit7=1
+  → emptyBits = word & BITMASK_MSB is sufficient and exact.
+
+The slot extraction still works: each byte contributes 1 bit at position bit7 of its byte.
+Long.numberOfTrailingZeros(emptyBits) gives bit index of first set bit7, divide by 8 gives slot offset.
+
+Conservative change: only the fast path (tombstones==0). Slow path unchanged.
