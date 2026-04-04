@@ -22,6 +22,10 @@ SwissMap의 전반적 성능 지표 개선:
 - Average latency: **10% 이상** 단축
 - 메모리 footprint: **10% 이상** 감소 또는 유지
 
+## 트레이드오프 제약
+- Get/Put 모두 중요한 지표임 — 어느 한 지표를 **10% 초과** 악화시키는 변경은, 다른 지표가 개선되더라도 **Revert**
+- 예: PutMiss@784K -15% 개선이라도 PutHit@12K +12% 악화이면 → Revert
+
 ## Guard 명령
 ```
 ./gradlew test apacheTest googleTest
