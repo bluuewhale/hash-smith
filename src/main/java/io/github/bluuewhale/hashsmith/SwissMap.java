@@ -584,17 +584,18 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		for (;;) {
 			long word = ctrl[g];
 			int base = g << 3;
-			int eqMask = eqMask(word, h2Broadcast);
-			while (eqMask != 0) {
-				int idx = base + Integer.numberOfTrailingZeros(eqMask);
+			int eqM = eqMask(word, h2Broadcast);      // SWAR compare — independent of emptyBits
+			long emptyBits = hasEmpty(word);            // SWAR empty check — issued in parallel by OOO CPU
+			while (eqM != 0) {
+				int idx = base + Integer.numberOfTrailingZeros(eqM);
 				Object k = keys[idx];
 				// Non-concurrent path does not need to keep the NULL-safe check.
 				if (k == key || k.equals(key)) {
 					return idx;
 				}
-				eqMask &= eqMask - 1; // clear LSB
+				eqM &= eqM - 1; // clear LSB
 			}
-			if (hasEmpty(word) != 0) return -1;
+			if (emptyBits != 0) return -1;
 			g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
 		}
 	}
