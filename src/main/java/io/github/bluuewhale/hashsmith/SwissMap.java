@@ -20,8 +20,8 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	private static final byte EMPTY = (byte) 0x80;    // empty slot
 	private static final byte DELETED = (byte) 0xFE;  // tombstone
 
-	/* Hash split masks: bits 31..25 → h2 fingerprint (7 bits), bits 24..0 → h1 group index (25 bits) */
-	private static final int H1_MASK = 0x01FFFFFF;
+	/* Hash split masks: high bits choose group, low 7 bits stored in control byte */
+	private static final int H2_MASK = 0x0000007F;
 
 	/* Group sizing: SWAR fixed at 8 slots (1 word) */
 	private static final int GROUP_SIZE = 8;
@@ -89,22 +89,11 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 
 	/* Hash split helpers */
 	private int h1(int hash) {
-		return hash & H1_MASK;
+		return hash >>> 7;
 	}
 
 	private byte h2(int hash) {
-		return (byte) ((hash >>> 25) & 0x7F);
-	}
-
-	/**
-	 * SwissMap-local hash: Fibonacci multiplicative hash (single 64-bit IMULQ) replaces
-	 * the Murmur3 smear chain. Faster on compute-bound small-table paths (PutHit@12K, PutMiss@12K).
-	 * Overrides AbstractArrayMap.hashNonNull so both put and get paths use the same hash.
-	 */
-	@Override
-	protected int hashNonNull(Object key) {
-		if (key == null) throw new NullPointerException("Null keys not supported");
-		return Hashing.fibonacciHash(key.hashCode());
+		return (byte) (hash & H2_MASK);
 	}
 
 	private int hash(Object key) {
@@ -195,7 +184,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 
 	/* Control byte inspectors */
 	private boolean isDeleted(byte c) { return c == DELETED; }
-	private boolean isFull(byte c) { return c >= 0; } // H2 in [0,127]
+	private boolean isFull(byte c) { return c >= 0 && c <= H2_MASK; } // H2 in [0,127]
 
 	/* SWAR helpers */
 	private static long toUnsignedByte(byte b) {
@@ -418,17 +407,6 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	 *
 	 * Precondition: {@code smearedHash} must be {@link Hashing#smearedHash(Object)} for {@code key}.
 	 */
-	/**
-	 * Fast "has any empty slot?" check using SWAR without a multiply.
-	 * XOR with EMPTY_BROADCAST converts EMPTY (0x80) bytes to 0x00, then applies hasZero:
-	 * hasZero(v) = (v - BITMASK_LSB) &amp; ~v &amp; BITMASK_MSB
-	 * Returns non-zero iff at least one empty slot exists in the group word.
-	 */
-	private static long hasEmpty(long word) {
-		long x = word ^ EMPTY_BROADCAST; // EMPTY bytes become 0x00
-		return (x - BITMASK_LSB) & ~x & BITMASK_MSB;
-	}
-
 	private V putValHashed(K key, V value, int smearedHash) {
 		int h1 = h1(smearedHash);
 		byte h2 = h2(smearedHash);
@@ -440,65 +418,33 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		int mask = ctrl.length - 1;
 		int g = h1 & mask; // optimized modulo operation (same as h1 % nGroups)
 		int step = 0; // triangular probing step over groups
-		if (tombstones == 0) {
-			// FAST PATH: no tombstones — DELETED_BROADCAST scan entirely absent from loop body.
-			// firstTombstone variable eliminated; fewer live variables free registers for ILP.
-			// Hoist both independent SWAR ops adjacently so OOO CPU can pipeline them (iter-003).
-			for (;;) {
-				long word = ctrl[g];
-				int base = g << 3;
-				int eqM = eqMask(word, h2Broadcast);
-				long emptyBits = hasEmpty(word); // independent of eqM; CPU issues in parallel
-				while (eqM != 0) {
-					int idx = base + Integer.numberOfTrailingZeros(eqM);
-					Object k = keys[idx];
-					// Non-concurrent path does not need to keep the NULL-safe check.
-					if (k == key || k.equals(key)) {
-						V old = castValue(vals[idx]);
-						vals[idx] = value;
-						return old;
-					}
-					eqM &= eqM - 1; // clear LSB
+		int firstTombstone = -1;
+		for (;;) {
+			long word = ctrl[g];
+			int base = g << 3;
+			int eqMask = eqMask(word, h2Broadcast);
+			while (eqMask != 0) {
+				int idx = base + Integer.numberOfTrailingZeros(eqMask);
+				Object k = keys[idx];
+				// Non-concurrent path does not need to keep the NULL-safe check.
+				if (k == key || k.equals(key)) {
+					V old = castValue(vals[idx]);
+					vals[idx] = value;
+					return old;
 				}
-				// emptyBits already computed above; slot offset extracted via trailing-zeros >>> 3.
-				if (emptyBits != 0) {
-					int idx = base + (Long.numberOfTrailingZeros(emptyBits) >>> 3);
-					return insertAt(idx, key, value, h2);
-				}
-				g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
+				eqMask &= eqMask - 1; // clear LSB
 			}
-		} else {
-			// SLOW PATH: tombstone scan needed — full loop with DELETED_BROADCAST.
-			int firstTombstone = -1;
-			for (;;) {
-				long word = ctrl[g];
-				int base = g << 3;
-				// Hoist both independent SWAR ops adjacently so OOO CPU can pipeline them.
-				int eqM = eqMask(word, h2Broadcast);
-				long emptyBits = hasEmpty(word); // independent of eqM; CPU issues in parallel
-				while (eqM != 0) {
-					int idx = base + Integer.numberOfTrailingZeros(eqM);
-					Object k = keys[idx];
-					// Non-concurrent path does not need to keep the NULL-safe check.
-					if (k == key || k.equals(key)) {
-						V old = castValue(vals[idx]);
-						vals[idx] = value;
-						return old;
-					}
-					eqM &= eqM - 1; // clear LSB
-				}
-				if (firstTombstone < 0) {
-					int delMask = eqMask(word, DELETED_BROADCAST);
-					if (delMask != 0) firstTombstone = base + Integer.numberOfTrailingZeros(delMask);
-				}
-				// emptyBits already computed above; slot offset extracted via trailing-zeros >>> 3.
-				if (emptyBits != 0) {
-					int idx = base + (Long.numberOfTrailingZeros(emptyBits) >>> 3);
-					int target = (firstTombstone >= 0) ? firstTombstone : idx;
-					return insertAt(target, key, value, h2);
-				}
-				g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
+			if (firstTombstone < 0) {
+				int delMask = eqMask(word, DELETED_BROADCAST);
+				if (delMask != 0) firstTombstone = base + Integer.numberOfTrailingZeros(delMask);
 			}
+			int emptyMask = eqMask(word, EMPTY_BROADCAST);
+			if (emptyMask != 0) {
+				int idx = base + Integer.numberOfTrailingZeros(emptyMask);
+				int target = (firstTombstone >= 0) ? firstTombstone : idx;
+				return insertAt(target, key, value, h2);
+			}
+			g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
 		}
 	}
 
@@ -532,9 +478,9 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 				int delMask = eqMask(word, DELETED_BROADCAST);
 				if (delMask != 0) firstTombstone = base + Integer.numberOfTrailingZeros(delMask);
 			}
-			long emptyBits = hasEmpty(word);
-			if (emptyBits != 0) {
-				int idx = base + (Long.numberOfTrailingZeros(emptyBits) >>> 3);
+			int emptyMask = eqMask(word, EMPTY_BROADCAST);
+			if (emptyMask != 0) {
+				int idx = base + Integer.numberOfTrailingZeros(emptyMask);
 				int target = (firstTombstone >= 0) ? firstTombstone : idx;
 				return insertAtConcurrent(target, key, value, h2);
 			}
@@ -605,7 +551,10 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 				}
 				eqMask &= eqMask - 1; // clear LSB
 			}
-			if (hasEmpty(word) != 0) return -1;
+			int emptyMask = eqMask(word, EMPTY_BROADCAST);
+			if (emptyMask != 0) {
+				return -1;
+			}
 			g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
 		}
 	}
@@ -634,7 +583,8 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 				}
 				eqMask &= eqMask - 1;
 			}
-			if (hasEmpty(word) != 0) return -1;
+			int emptyMask = eqMask(word, EMPTY_BROADCAST);
+			if (emptyMask != 0) return -1;
 			g = (g + (++step)) & mask;
 		}
 	}

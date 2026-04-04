@@ -85,9 +85,7 @@ public final class ConcurrentSwissMap<K, V> implements ConcurrentMap<K, V> {
 
 	private static int smearedHashNonNull(Object key) {
 		if (key == null) throw new NullPointerException("Null keys not supported");
-		// Use the same Fibonacci hash as SwissMap shards to ensure shard selection
-		// and within-shard slot placement use the same hash value.
-		return Hashing.fibonacciHash(key.hashCode());
+		return Hashing.smearedHash(key);
 	}
 
 	private int shardOfHash(int smearedHash) {
