@@ -452,13 +452,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 				// emptyBits already computed above; slot offset extracted via trailing-zeros >>> 3.
 				if (emptyBits != 0) {
 					int idx = base + (Long.numberOfTrailingZeros(emptyBits) >>> 3);
-					// Inlined insertAt: tombstones==0 guarantees slot is EMPTY, never DELETED.
-					// Dead isDeleted check and method call boundary both eliminated.
-					keys[idx] = key;
-					vals[idx] = value;
-					setCtrlAt(ctrl, idx, h2);
-					size++;
-					return null;
+					return insertAt(idx, key, value, h2);
 				}
 				g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
 			}
