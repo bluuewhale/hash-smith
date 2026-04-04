@@ -1,0 +1,452 @@
+[
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutHit",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java",
+        "jvmArgs" : [
+            "--add-modules=jdk.incubator.vector",
+            "--enable-preview",
+            "--add-modules=jdk.incubator.vector",
+            "--enable-preview"
+        ],
+        "jdkVersion" : "21.0.9",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.9+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "5 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "12000"
+        },
+        "primaryMetric" : {
+            "score" : 9.221769686247375,
+            "scoreError" : 1.2698618849359014,
+            "scoreConfidence" : [
+                7.951907801311474,
+                10.491631571183277
+            ],
+            "scorePercentiles" : {
+                "0.0" : 9.170863029813553,
+                "50.0" : 9.193359315860128,
+                "90.0" : 9.301086713068447,
+                "95.0" : 9.301086713068447,
+                "99.0" : 9.301086713068447,
+                "99.9" : 9.301086713068447,
+                "99.99" : 9.301086713068447,
+                "99.999" : 9.301086713068447,
+                "99.9999" : 9.301086713068447,
+                "100.0" : 9.301086713068447
+            },
+            "scoreUnit" : "ns/op",
+            "rawData" : [
+                [
+                    9.193359315860128,
+                    9.301086713068447,
+                    9.170863029813553
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutHit",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java",
+        "jvmArgs" : [
+            "--add-modules=jdk.incubator.vector",
+            "--enable-preview",
+            "--add-modules=jdk.incubator.vector",
+            "--enable-preview"
+        ],
+        "jdkVersion" : "21.0.9",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.9+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "5 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "48000"
+        },
+        "primaryMetric" : {
+            "score" : 8.117666808590037,
+            "scoreError" : 4.769948581278326,
+            "scoreConfidence" : [
+                3.347718227311711,
+                12.887615389868364
+            ],
+            "scorePercentiles" : {
+                "0.0" : 7.816690240229319,
+                "50.0" : 8.247671443061932,
+                "90.0" : 8.28863874247886,
+                "95.0" : 8.28863874247886,
+                "99.0" : 8.28863874247886,
+                "99.9" : 8.28863874247886,
+                "99.99" : 8.28863874247886,
+                "99.999" : 8.28863874247886,
+                "99.9999" : 8.28863874247886,
+                "100.0" : 8.28863874247886
+            },
+            "scoreUnit" : "ns/op",
+            "rawData" : [
+                [
+                    8.28863874247886,
+                    7.816690240229319,
+                    8.247671443061932
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutHit",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java",
+        "jvmArgs" : [
+            "--add-modules=jdk.incubator.vector",
+            "--enable-preview",
+            "--add-modules=jdk.incubator.vector",
+            "--enable-preview"
+        ],
+        "jdkVersion" : "21.0.9",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.9+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "5 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "196000"
+        },
+        "primaryMetric" : {
+            "score" : 15.972585568764634,
+            "scoreError" : 16.06400806322747,
+            "scoreConfidence" : [
+                -0.09142249446283479,
+                32.036593631992105
+            ],
+            "scorePercentiles" : {
+                "0.0" : 15.190306586952378,
+                "50.0" : 15.801275464616278,
+                "90.0" : 16.926174654725244,
+                "95.0" : 16.926174654725244,
+                "99.0" : 16.926174654725244,
+                "99.9" : 16.926174654725244,
+                "99.99" : 16.926174654725244,
+                "99.999" : 16.926174654725244,
+                "99.9999" : 16.926174654725244,
+                "100.0" : 16.926174654725244
+            },
+            "scoreUnit" : "ns/op",
+            "rawData" : [
+                [
+                    15.190306586952378,
+                    16.926174654725244,
+                    15.801275464616278
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutHit",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java",
+        "jvmArgs" : [
+            "--add-modules=jdk.incubator.vector",
+            "--enable-preview",
+            "--add-modules=jdk.incubator.vector",
+            "--enable-preview"
+        ],
+        "jdkVersion" : "21.0.9",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.9+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "5 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "784000"
+        },
+        "primaryMetric" : {
+            "score" : 31.209323480055513,
+            "scoreError" : 10.067478507852929,
+            "scoreConfidence" : [
+                21.141844972202584,
+                41.27680198790844
+            ],
+            "scorePercentiles" : {
+                "0.0" : 30.623801873624036,
+                "50.0" : 31.28438630610739,
+                "90.0" : 31.719782260435117,
+                "95.0" : 31.719782260435117,
+                "99.0" : 31.719782260435117,
+                "99.9" : 31.719782260435117,
+                "99.99" : 31.719782260435117,
+                "99.999" : 31.719782260435117,
+                "99.9999" : 31.719782260435117,
+                "100.0" : 31.719782260435117
+            },
+            "scoreUnit" : "ns/op",
+            "rawData" : [
+                [
+                    31.28438630610739,
+                    30.623801873624036,
+                    31.719782260435117
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutMiss",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java",
+        "jvmArgs" : [
+            "--add-modules=jdk.incubator.vector",
+            "--enable-preview",
+            "--add-modules=jdk.incubator.vector",
+            "--enable-preview"
+        ],
+        "jdkVersion" : "21.0.9",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.9+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "5 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "12000"
+        },
+        "primaryMetric" : {
+            "score" : 16.768103801899787,
+            "scoreError" : 10.811962336524179,
+            "scoreConfidence" : [
+                5.956141465375609,
+                27.580066138423966
+            ],
+            "scorePercentiles" : {
+                "0.0" : 16.22042218853105,
+                "50.0" : 16.686619444636246,
+                "90.0" : 17.397269772532074,
+                "95.0" : 17.397269772532074,
+                "99.0" : 17.397269772532074,
+                "99.9" : 17.397269772532074,
+                "99.99" : 17.397269772532074,
+                "99.999" : 17.397269772532074,
+                "99.9999" : 17.397269772532074,
+                "100.0" : 17.397269772532074
+            },
+            "scoreUnit" : "ns/op",
+            "rawData" : [
+                [
+                    17.397269772532074,
+                    16.22042218853105,
+                    16.686619444636246
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutMiss",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java",
+        "jvmArgs" : [
+            "--add-modules=jdk.incubator.vector",
+            "--enable-preview",
+            "--add-modules=jdk.incubator.vector",
+            "--enable-preview"
+        ],
+        "jdkVersion" : "21.0.9",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.9+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "5 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "48000"
+        },
+        "primaryMetric" : {
+            "score" : 14.42855925936888,
+            "scoreError" : 33.131963987644596,
+            "scoreConfidence" : [
+                -18.703404728275714,
+                47.56052324701348
+            ],
+            "scorePercentiles" : {
+                "0.0" : 12.398441814768228,
+                "50.0" : 14.988541229729197,
+                "90.0" : 15.898694733609213,
+                "95.0" : 15.898694733609213,
+                "99.0" : 15.898694733609213,
+                "99.9" : 15.898694733609213,
+                "99.99" : 15.898694733609213,
+                "99.999" : 15.898694733609213,
+                "99.9999" : 15.898694733609213,
+                "100.0" : 15.898694733609213
+            },
+            "scoreUnit" : "ns/op",
+            "rawData" : [
+                [
+                    15.898694733609213,
+                    14.988541229729197,
+                    12.398441814768228
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutMiss",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java",
+        "jvmArgs" : [
+            "--add-modules=jdk.incubator.vector",
+            "--enable-preview",
+            "--add-modules=jdk.incubator.vector",
+            "--enable-preview"
+        ],
+        "jdkVersion" : "21.0.9",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.9+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "5 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "196000"
+        },
+        "primaryMetric" : {
+            "score" : 54.51250505847427,
+            "scoreError" : 11.159410645611652,
+            "scoreConfidence" : [
+                43.35309441286262,
+                65.67191570408592
+            ],
+            "scorePercentiles" : {
+                "0.0" : 53.80669213757874,
+                "50.0" : 54.84239907595217,
+                "90.0" : 54.8884239618919,
+                "95.0" : 54.8884239618919,
+                "99.0" : 54.8884239618919,
+                "99.9" : 54.8884239618919,
+                "99.99" : 54.8884239618919,
+                "99.999" : 54.8884239618919,
+                "99.9999" : 54.8884239618919,
+                "100.0" : 54.8884239618919
+            },
+            "scoreUnit" : "ns/op",
+            "rawData" : [
+                [
+                    53.80669213757874,
+                    54.84239907595217,
+                    54.8884239618919
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutMiss",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java",
+        "jvmArgs" : [
+            "--add-modules=jdk.incubator.vector",
+            "--enable-preview",
+            "--add-modules=jdk.incubator.vector",
+            "--enable-preview"
+        ],
+        "jdkVersion" : "21.0.9",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.9+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "5 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "784000"
+        },
+        "primaryMetric" : {
+            "score" : 76.92198180776795,
+            "scoreError" : 83.1675245762024,
+            "scoreConfidence" : [
+                -6.245542768434447,
+                160.08950638397033
+            ],
+            "scorePercentiles" : {
+                "0.0" : 72.7024503533192,
+                "50.0" : 76.30624859329433,
+                "90.0" : 81.7572464766903,
+                "95.0" : 81.7572464766903,
+                "99.0" : 81.7572464766903,
+                "99.9" : 81.7572464766903,
+                "99.99" : 81.7572464766903,
+                "99.999" : 81.7572464766903,
+                "99.9999" : 81.7572464766903,
+                "100.0" : 81.7572464766903
+            },
+            "scoreUnit" : "ns/op",
+            "rawData" : [
+                [
+                    72.7024503533192,
+                    76.30624859329433,
+                    81.7572464766903
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    }
+]
+
+
