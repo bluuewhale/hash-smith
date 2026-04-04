@@ -36,9 +36,10 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	private static final long DELETED_BROADCAST = broadcast(DELETED);
 
 	/* Storage and state */
-	private long[] ctrl;       // each long packs 8 control bytes
-	private Object[] entries;  // interleaved: entries[2*i]=key, entries[2*i+1]=val
-	private int tombstones;    // deleted slots
+	private long[] ctrl;     // each long packs 8 control bytes
+	private Object[] keys;   // key storage
+	private Object[] vals;   // value storage
+	private int tombstones;  // deleted slots
 
 	/**
 	 * Control word access needs to participate in the publish protocol used by {@link ConcurrentSwissMap}
@@ -79,7 +80,8 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 
 		this.ctrl = new long[nGroups];
 		Arrays.fill(this.ctrl, EMPTY_BROADCAST);
-		this.entries = new Object[capacity << 1]; // entries[2*i]=key, entries[2*i+1]=val
+		this.keys = new Object[capacity];
+		this.vals = new Object[capacity];
 		this.size = 0;
 		this.tombstones = 0;
 		this.maxLoad = calcMaxLoad(this.capacity);
@@ -104,7 +106,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	 */
 	V get(Object key, int smearedHash) {
 		int idx = findIndexHashed(key, smearedHash);
-		return (idx >= 0) ? castValue(entries[(idx << 1) | 1]) : null;
+		return (idx >= 0) ? castValue(vals[idx]) : null;
 	}
 
 	/**
@@ -128,7 +130,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	V remove(Object key, int smearedHash) {
 		int idx = findIndexHashed(key, smearedHash);
 		if (idx < 0) return null;
-		V old = castValue(entries[(idx << 1) | 1]);
+		V old = castValue(vals[idx]);
 		setCtrlAt(ctrl, idx, DELETED);
 		setEntryAt(idx, null, null);
 		size--;
@@ -145,7 +147,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	 */
 	V getConcurrent(Object key, int smearedHash) {
 		int idx = findIndexHashedConcurrent(key, smearedHash);
-		return (idx >= 0) ? castValue(entries[(idx << 1) | 1]) : null;
+		return (idx >= 0) ? castValue(vals[idx]) : null;
 	}
 
 	/**
@@ -172,7 +174,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	V removeConcurrent(Object key, int smearedHash) {
 		int idx = findIndexHashedConcurrent(key, smearedHash);
 		if (idx < 0) return null;
-		V old = castValue(entries[(idx << 1) | 1]);
+		V old = castValue(vals[idx]);
 		deleteAtConcurrent(idx);
 		size--;
 		tombstones++;
@@ -237,6 +239,11 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		ctrlWordRelease(ctrl, group, (word & ~mask) | (toUnsignedByte(value) << offset));
 	}
 
+	private void setEntryAt(int idx, K key, V value) {
+		keys[idx] = key;
+		vals[idx] = value;
+	}
+
 	/* Resize/rehash */
 	private void maybeRehash() {
 		// trigger when over load or too many tombstones
@@ -252,7 +259,8 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 
 	private void rehash(int newCapacity) {
 		long[] oldCtrl = this.ctrl;
-		Object[] oldEntries = this.entries;
+		Object[] oldKeys = this.keys;
+		Object[] oldVals = this.vals;
 		int oldCap = (oldCtrl == null) ? 0 : oldCtrl.length * GROUP_SIZE;
 
 		int desiredGroups = Math.max(1, (Math.max(newCapacity, GROUP_SIZE) + GROUP_SIZE - 1) / GROUP_SIZE);
@@ -260,7 +268,8 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		this.capacity = desiredGroups * GROUP_SIZE;
 		this.ctrl = new long[desiredGroups];
 		Arrays.fill(this.ctrl, EMPTY_BROADCAST);
-		this.entries = new Object[this.capacity << 1];
+		this.keys = new Object[this.capacity];
+		this.vals = new Object[this.capacity];
 		this.size = 0;
 		this.tombstones = 0;
 		this.maxLoad = calcMaxLoad(this.capacity);
@@ -270,8 +279,8 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		for (int i = 0; i < oldCap; i++) {
 			byte c = ctrlAt(oldCtrl, i);
 			if (!isFull(c)) continue;
-			K k = castKey(oldEntries[i << 1]);
-			V v = castValue(oldEntries[(i << 1) | 1]);
+			K k = castKey(oldKeys[i]);
+			V v = castValue(oldVals[i]);
 			insertFresh(k, v);
 		}
 	}
@@ -281,7 +290,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		int h = hash(key);
 		int h1 = h1(h);
 		byte h2 = h2(h);
-		long[] ctrl = this.ctrl; // local snapshot
+		long[] ctrl = this.ctrl; // local snapshot 
 		int mask = ctrl.length - 1; // Derive mask from the array we index into (ctrl) to help JIT range-check elimination.
 		int g = h1 & mask;
 		int step = 0;
@@ -299,12 +308,6 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 			}
 			g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
 		}
-	}
-
-	private void setEntryAt(int idx, K key, V value) {
-		int ei = idx << 1;
-		entries[ei] = key;
-		entries[ei | 1] = value;
 	}
 
 	@Override
@@ -326,7 +329,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	public boolean containsValue(Object value) {
 		for (int i = 0; i < capacity; i++) {
 			if (isFull(ctrlAt(ctrl, i))) {
-				if (Objects.equals(entries[(i << 1) | 1], value)) return true;
+				if (Objects.equals(vals[i], value)) return true;
 			}
 		}
 		return false;
@@ -342,7 +345,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	public V remove(Object key) {
 		int idx = findIndex(key);
 		if (idx < 0) return null;
-		V old = castValue(entries[(idx << 1) | 1]);
+		V old = castValue(vals[idx]);
 		setCtrlAt(ctrl, idx, DELETED);
 		setEntryAt(idx, null, null);
 		size--;
@@ -359,7 +362,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	public V removeWithoutTombstone(Object key) {
 		int idx = findIndex(key);
 		if (idx < 0) return null;
-		V old = castValue(entries[(idx << 1) | 1]);
+		V old = castValue(vals[idx]);
 		setCtrlAt(ctrl, idx, DELETED);
 		setEntryAt(idx, null, null);
 		rehash(capacity);
@@ -420,7 +423,8 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		byte h2 = h2(smearedHash);
 		long h2Broadcast = broadcast(h2);
 		long[] ctrl = this.ctrl; // local snapshot
-		Object[] entries = this.entries; // local snapshot; entries[2*i]=key, entries[2*i+1]=val
+		Object[] keys = this.keys; // local snapshot
+		Object[] vals = this.vals; // local snapshot
 		// Derive mask from the array we index into (ctrl) to help JIT range-check elimination.
 		int mask = ctrl.length - 1;
 		int g = h1 & mask; // optimized modulo operation (same as h1 % nGroups)
@@ -436,12 +440,11 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 				long emptyBits = hasEmpty(word); // independent of eqM; CPU issues in parallel
 				while (eqM != 0) {
 					int idx = base + Integer.numberOfTrailingZeros(eqM);
-					int ei = idx << 1; // interleaved index: key at ei, val at ei|1
-					Object k = entries[ei];
+					Object k = keys[idx];
 					// Non-concurrent path does not need to keep the NULL-safe check.
 					if (k == key || k.equals(key)) {
-						V old = castValue(entries[ei | 1]);
-						entries[ei | 1] = value;
+						V old = castValue(vals[idx]);
+						vals[idx] = value;
 						return old;
 					}
 					eqM &= eqM - 1; // clear LSB
@@ -464,12 +467,11 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 				long emptyBits = hasEmpty(word); // independent of eqM; CPU issues in parallel
 				while (eqM != 0) {
 					int idx = base + Integer.numberOfTrailingZeros(eqM);
-					int ei = idx << 1; // interleaved index: key at ei, val at ei|1
-					Object k = entries[ei];
+					Object k = keys[idx];
 					// Non-concurrent path does not need to keep the NULL-safe check.
 					if (k == key || k.equals(key)) {
-						V old = castValue(entries[ei | 1]);
-						entries[ei | 1] = value;
+						V old = castValue(vals[idx]);
+						vals[idx] = value;
 						return old;
 					}
 					eqM &= eqM - 1; // clear LSB
@@ -494,7 +496,8 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		byte h2 = h2(smearedHash);
 		long h2Broadcast = broadcast(h2);
 		long[] ctrl = this.ctrl; // local snapshot
-		Object[] entries = this.entries; // local snapshot; entries[2*i]=key, entries[2*i+1]=val
+		Object[] keys = this.keys; // local snapshot
+		Object[] vals = this.vals; // local snapshot
 		int mask = ctrl.length - 1;
 		int g = h1 & mask;
 		int step = 0;
@@ -505,12 +508,11 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 			int eqMask = eqMask(word, h2Broadcast);
 			while (eqMask != 0) {
 				int idx = base + Integer.numberOfTrailingZeros(eqMask);
-				int ei = idx << 1; // interleaved index: key at ei, val at ei|1
-				Object k = entries[ei];
+				Object k = keys[idx];
 				// Writers are under shard write lock; No need to keep the NULL-safe check.
 				if (k == key || k.equals(key)) {
-					V old = castValue(entries[ei | 1]);
-					entries[ei | 1] = value;
+					V old = castValue(vals[idx]);
+					vals[idx] = value;
 					return old;
 				}
 				eqMask &= eqMask - 1;
@@ -532,7 +534,8 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	@Override
 	public void clear() {
 		Arrays.fill(ctrl, EMPTY_BROADCAST);
-		Arrays.fill(entries, null);
+		Arrays.fill(keys, null);
+		Arrays.fill(vals, null);
 		size = 0;
 		tombstones = 0;
 		maxLoad = calcMaxLoad(capacity);
@@ -574,7 +577,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		byte h2 = h2(smearedHash);
 		long h2Broadcast = toUnsignedByte(h2) * BITMASK_LSB;
 		long[] ctrl = this.ctrl; // local snapshot
-		Object[] entries = this.entries; // local snapshot; entries[2*i]=key
+		Object[] keys = this.keys; // local snapshot
 		int mask = ctrl.length - 1; // Derive mask from the array we index into (ctrl) to help JIT range-check elimination.
 		int g = h1 & mask;
 		int step = 0;
@@ -584,7 +587,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 			int eqMask = eqMask(word, h2Broadcast);
 			while (eqMask != 0) {
 				int idx = base + Integer.numberOfTrailingZeros(eqMask);
-				Object k = entries[idx << 1];
+				Object k = keys[idx];
 				// Non-concurrent path does not need to keep the NULL-safe check.
 				if (k == key || k.equals(key)) {
 					return idx;
@@ -602,7 +605,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		byte h2 = h2(smearedHash);
 		long h2Broadcast = toUnsignedByte(h2) * BITMASK_LSB;
 		long[] ctrl = this.ctrl; // local snapshot
-		Object[] entries = this.entries; // local snapshot; entries[2*i]=key
+		Object[] keys = this.keys; // local snapshot
 		int mask = ctrl.length - 1;
 		int g = h1 & mask;
 		int step = 0;
@@ -613,7 +616,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 			int eqMask = eqMask(word, h2Broadcast);
 			while (eqMask != 0) {
 				int idx = base + Integer.numberOfTrailingZeros(eqMask);
-				Object k = entries[idx << 1];
+				Object k = keys[idx];
 				// Keep NULL-safe check to survive concurrent deletes without crashing before stamp validation.
 				if (k == key || (k != null && k.equals(key))) {
 					return idx;
@@ -664,7 +667,7 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 
 	@Override
 	protected V valueAt(int idx) {
-		return castValue(entries[(idx << 1) | 1]);
+		return castValue(vals[idx]);
 	}
 
 	/* iterator base */
@@ -725,14 +728,14 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 	private class KeyIter extends BaseIter<K> {
 		@Override
 		public K next() {
-			return castKey(entries[nextIndex() << 1]);
+			return castKey(keys[nextIndex()]);
 		}
 	}
 
 	private class ValueIter extends BaseIter<V> {
 		@Override
 		public V next() {
-			return castValue(entries[(nextIndex() << 1) | 1]);
+			return castValue(vals[nextIndex()]);
 		}
 	}
 
@@ -750,19 +753,18 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 
 		@Override
 		public K getKey() {
-			return castKey(entries[idx << 1]);
+			return castKey(keys[idx]);
 		}
 
 		@Override
 		public V getValue() {
-			return castValue(entries[(idx << 1) | 1]);
+			return castValue(vals[idx]);
 		}
 
 		@Override
 		public V setValue(V value) {
-			int ei = idx << 1;
-			V old = castValue(entries[ei | 1]);
-			entries[ei | 1] = value;
+			V old = castValue(vals[idx]);
+			vals[idx] = value;
 			return old;
 		}
 
