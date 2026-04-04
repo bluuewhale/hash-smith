@@ -1,0 +1,29 @@
+Profile snapshot for iter-006-loop-specialization
+Generated: 2026-04-04
+Source: benchmark-results/2026-04-04_22-26-02_swissmap.json (latest, iter-005 result after revert)
+
+=== Current state (iter-003 code, post-iter-005-revert) ===
+PutHit@12K:   9.223 ns  (after revert from iter-005 — should re-measure from iter-003 baseline)
+PutHit@784K: 32.070 ns
+PutMiss@12K: 18.657 ns
+PutMiss@784K: 76.356 ns
+
+=== Leaderboard best (iter-003) ===
+PutHit@12K:   6.011 ns  (-24.1% vs baseline)
+PutHit@784K: 29.016 ns  (+1.1% vs baseline)
+PutMiss@12K: 17.514 ns  (-5.0% vs baseline)
+PutMiss@784K: 102.2 ns  (noisy, high variance ±58 ns)
+
+=== Baseline ===
+PutHit@12K:   7.921 ns
+PutHit@784K: 28.689 ns
+PutMiss@12K: 18.443 ns
+PutMiss@784K: 112.932 ns
+
+=== Key context ===
+- Latest JSON file reflects iter-005 coldpath-split result (reverted)
+- Code is currently at iter-003 state (ILP hoisting in putValHashed)
+- tombstones==0 guard from iter-001 exists inline in loop body as:
+    if (firstTombstone < 0 && tombstones > 0) { ... DELETED_BROADCAST scan ... }
+- iter-003 ILP: eqM and emptyBits computed adjacently so OOO CPU pipelines them
+- Strategy: duplicate the probe loop — no-tombstone fast path removes DELETED_BROADCAST entirely
