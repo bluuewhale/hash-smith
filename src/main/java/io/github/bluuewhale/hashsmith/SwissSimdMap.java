@@ -258,73 +258,40 @@ public class SwissSimdMap<K, V> extends AbstractArrayMap<K, V> {
         int h1 = h1(h);
         byte h2 = h2(h);
         int mask = groupMask;
+        int firstTombstone = -1;
+        int visitedGroups = 0;
         int g = h1 & mask; // optimized modulo operation (same as h1 % nGroups)
         int step = 0; // triangular probing step over groups
-        if (tombstones == 0) {
-            // FAST PATH: no tombstones — DELETED scan and firstTombstone tracking entirely absent.
-            // Fewer live variables free registers; shorter loop body helps JIT inline and schedule.
-            int visitedGroups = 0;
-            for (;;) {
-                int base = g * DEFAULT_GROUP_SIZE;
-                ByteVector v = loadCtrlVector(base);
-                long eqMask = v.eq(h2).toLong();
-                while (eqMask != 0) {
-                    int bit = Long.numberOfTrailingZeros(eqMask);
-                    int idx = base + bit;
-                    Object k = keys[idx];
-                    // NULL-safe: an optimistic reader may observe ctrl and then see a null key while a writer is publishing.
-                    if (k == key || (k != null && k.equals(key))) { // almost always true; too bad I can’t hint the compiler
-                        @SuppressWarnings("unchecked") V old = (V) vals[idx];
-                        vals[idx] = value;
-                        return old;
-                    }
-                    eqMask &= eqMask - 1; // clear LSB
+        for (;;) {
+            int base = g * DEFAULT_GROUP_SIZE;
+            ByteVector v = loadCtrlVector(base);
+            long eqMask = v.eq(h2).toLong();
+            while (eqMask != 0) {
+                int bit = Long.numberOfTrailingZeros(eqMask);
+                int idx = base + bit;
+				Object k = keys[idx];
+				// NULL-safe: an optimistic reader may observe ctrl and then see a null key while a writer is publishing.
+				if (k == key || (k != null && k.equals(key))) { // almost always true; too bad I can’t hint the compiler
+                    @SuppressWarnings("unchecked") V old = (V) vals[idx];
+                    vals[idx] = value;
+                    return old;
                 }
-                long emptyMask = v.eq(EMPTY).toLong();
-                if (emptyMask != 0) {
-                    int idx = base + Long.numberOfTrailingZeros(emptyMask);
-                    return insertAt(idx, key, value, h2);
-                }
-                if (++visitedGroups >= numGroups) {
-                    throw new IllegalStateException("Probe cycle exhausted; table appears full of tombstones");
-                }
-                g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
+                eqMask &= eqMask - 1; // clear LSB
             }
-        } else {
-            // SLOW PATH: tombstone scan needed — full loop with DELETED scan.
-            int firstTombstone = -1;
-            int visitedGroups = 0;
-            for (;;) {
-                int base = g * DEFAULT_GROUP_SIZE;
-                ByteVector v = loadCtrlVector(base);
-                long eqMask = v.eq(h2).toLong();
-                while (eqMask != 0) {
-                    int bit = Long.numberOfTrailingZeros(eqMask);
-                    int idx = base + bit;
-                    Object k = keys[idx];
-                    // NULL-safe: an optimistic reader may observe ctrl and then see a null key while a writer is publishing.
-                    if (k == key || (k != null && k.equals(key))) { // almost always true; too bad I can’t hint the compiler
-                        @SuppressWarnings("unchecked") V old = (V) vals[idx];
-                        vals[idx] = value;
-                        return old;
-                    }
-                    eqMask &= eqMask - 1; // clear LSB
-                }
-                if (firstTombstone < 0) {
-                    long delMask = v.eq(DELETED).toLong();
-                    if (delMask != 0) firstTombstone = base + Long.numberOfTrailingZeros(delMask);
-                }
-                long emptyMask = v.eq(EMPTY).toLong();
-                if (emptyMask != 0) {
-                    int idx = base + Long.numberOfTrailingZeros(emptyMask);
-                    int target = (firstTombstone >= 0) ? firstTombstone : idx;
-                    return insertAt(target, key, value, h2);
-                }
-                if (++visitedGroups >= numGroups) {
-                    throw new IllegalStateException("Probe cycle exhausted; table appears full of tombstones");
-                }
-                g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
+            if (firstTombstone < 0 && tombstones > 0) {
+                long delMask = v.eq(DELETED).toLong();
+                if (delMask != 0) firstTombstone = base + Long.numberOfTrailingZeros(delMask);
             }
+            long emptyMask = v.eq(EMPTY).toLong();
+            if (emptyMask != 0) {
+                int idx = base + Long.numberOfTrailingZeros(emptyMask);
+                int target = (firstTombstone >= 0) ? firstTombstone : idx;
+                return insertAt(target, key, value, h2);
+            }
+            if (++visitedGroups >= numGroups) {
+                throw new IllegalStateException("Probe cycle exhausted; table appears full of tombstones");
+            }
+            g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
         }
     }
 
