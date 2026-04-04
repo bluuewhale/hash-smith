@@ -1,0 +1,19 @@
+Benchmark                  (size)  Mode  Cnt   Score     Error  Units
+MapBenchmark.swissGetHit    12000  avgt    3   4.402 ±   0.275  ns/op
+MapBenchmark.swissGetHit    48000  avgt    3   5.134 ±   0.129  ns/op
+MapBenchmark.swissGetHit   196000  avgt    3   5.922 ±   0.023  ns/op
+MapBenchmark.swissGetHit   784000  avgt    3  13.056 ±   2.941  ns/op
+MapBenchmark.swissGetMiss   12000  avgt    3   4.750 ±   0.014  ns/op
+MapBenchmark.swissGetMiss   48000  avgt    3   5.736 ±   0.724  ns/op
+MapBenchmark.swissGetMiss  196000  avgt    3  11.599 ±   1.636  ns/op
+MapBenchmark.swissGetMiss  784000  avgt    3  13.058 ±   1.778  ns/op
+MapBenchmark.swissPutHit    12000  avgt    3   6.428 ±   1.199  ns/op
+MapBenchmark.swissPutHit    48000  avgt    3   7.734 ±   1.620  ns/op
+MapBenchmark.swissPutHit   196000  avgt    3   9.958 ±   2.509  ns/op
+MapBenchmark.swissPutHit   784000  avgt    3  21.602 ±   5.554  ns/op
+MapBenchmark.swissPutMiss   12000  avgt    3  17.601 ±   1.671  ns/op
+MapBenchmark.swissPutMiss   48000  avgt    3  14.057 ±  12.362  ns/op
+MapBenchmark.swissPutMiss  196000  avgt    3  56.110 ±  22.925  ns/op
+MapBenchmark.swissPutMiss  784000  avgt    3  79.756 ± 198.790  ns/op
+
+Source JSON: benchmark-results/2026-04-05_08-42-39_swissmap.json
