@@ -1,0 +1,39 @@
+# Benchmark Result: iter-015-restore-h1h2-split
+# Source: benchmark-results/2026-04-05_03-27-58_swissmap.json
+
+## Raw Results (ns/op, lower is better)
+Benchmark                      (size)  Mode  Cnt    Score     Error  Units
+MapBenchmark.swissSimdPutHit    12000  avgt    3    9.859 ±  21.293  ns/op  [HIGH NOISE: 216%]
+MapBenchmark.swissSimdPutHit    48000  avgt    3   11.932 ±   7.794  ns/op
+MapBenchmark.swissSimdPutHit   196000  avgt    3   17.314 ±  27.170  ns/op  [HIGH NOISE: 157%]
+MapBenchmark.swissSimdPutHit   784000  avgt    3   32.762 ±  44.864  ns/op  [HIGH NOISE: 137%]
+MapBenchmark.swissSimdPutMiss   12000  avgt    3   16.307 ±  14.886  ns/op  [NOISE: 91%]
+MapBenchmark.swissSimdPutMiss   48000  avgt    3   28.187 ± 134.580  ns/op  [HIGH NOISE]
+MapBenchmark.swissSimdPutMiss  196000  avgt    3   66.922 ± 169.721  ns/op  [HIGH NOISE]
+MapBenchmark.swissSimdPutMiss  784000  avgt    3  119.142 ± 363.633  ns/op  [HIGH NOISE]
+
+## Comparison vs Baseline (7.921 / 28.689 / 18.443 / 112.932 ns/op)
+- PutHit@12K:   9.859 ns  → +24.5% vs baseline  ❌ (but ±21.293 — noise 216%, not statistically valid)
+- PutHit@784K: 32.762 ns  → +14.2% vs baseline  ❌ (but ±44.864 — noise 137%, not statistically valid)
+- PutMiss@12K: 16.307 ns  → -11.6% vs baseline  ✅ (but ±14.886 — noise 91%)
+- PutMiss@784K: 119.142 ns → +5.5% vs baseline  ~ (±363.633 — completely noise)
+
+## Comparison vs iter-011 claimed base (5.954 / 26.435 / 17.006 / 71.225 ns/op)
+- PutHit@12K:   9.859 vs 5.954  → +65.6%  ❌
+- PutHit@784K: 32.762 vs 26.435 → +23.9%  ❌
+- PutMiss@12K: 16.307 vs 17.006 → -4.1%   ✅ (marginal improvement)
+- PutMiss@784K: 119.142 vs 71.225 → +67.3% ❌ (but high noise)
+
+## Decision: REVERT
+Per rules: ANY primary metric >10% worse than baseline → Revert
+PutHit@12K: +24.5% exceeds the 10% threshold.
+PutHit@784K: +14.2% also exceeds.
+
+Note: Error bars are enormous (216% noise on PutHit@12K). The measurement system
+is producing unreliable results — this is the benchmark noise problem documented
+in iter-013/014 reflexions. The actual code change may be neutral or beneficial,
+but cannot be verified with current measurement quality.
+
+PutMiss@12K shows -11.6% (the only possibly real signal), suggesting the
+tombstones==0 fast path MAY benefit PutMiss. Not enough to override the
+regression rule on PutHit metrics.
