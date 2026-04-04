@@ -293,7 +293,7 @@ public class MapBenchmark {
 	}
 
 	// ------- mutating: put hit/miss -------
-	@Benchmark
+//	@Benchmark
 	public void swissSimdPutHit(PutHitState s, Blackhole bh) {
         bh.consume(s.swissSimd.put(s.nextHitKey(), s.nextValue()));
 	}
@@ -318,7 +318,7 @@ public class MapBenchmark {
         bh.consume(s.jdk.put(s.nextHitKey(), s.nextValue()));
 	}
 
-	@Benchmark
+//	@Benchmark
 	public void swissSimdPutMiss(PutMissState s, Blackhole bh) {
         bh.consume(s.swissSimd.put(s.nextMissKey(), s.nextValue()));
 	}
