@@ -89,11 +89,15 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 
 	/* Hash split helpers */
 	private int h1(int hash) {
-		return hash >>> 7;
+		// Pass full hash; group selection applies groupMask via (h1 & groupMask) at call site.
+		// Saves the >>> 7 shift; top-7 bits are now reserved for h2 fingerprint.
+		return hash;
 	}
 
 	private byte h2(int hash) {
-		return (byte) (hash & H2_MASK);
+		// Use top 7 bits (bits 31..25) — highest avalanche quality from Fibonacci multiply.
+		// Reduces false-positive eqMask hits in SWAR scan, improving PutMiss throughput.
+		return (byte) (hash >>> 25);
 	}
 
 	/**
