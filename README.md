@@ -113,18 +113,6 @@ dependencies {
 | --- | --- |
 | ![CPU: get hit](images/map-cpu-get-hit.png) | ![CPU: get miss](images/map-cpu-get-miss.png) |
 
-### exp-001 optimization summary (ns/op, lower is better)
-
-| Metric | Baseline | Optimized | Δ |
-|---|---|---|---|
-| GetHit @ 12K | 5.59 | 4.53 | **-18.9%** |
-| GetHit @ 784K | 17.98 | 14.95 | **-16.8%** |
-| GetMiss @ 12K | 5.84 | 4.80 | **-17.8%** |
-| GetMiss @ 784K | 16.51 | 14.28 | **-13.5%** |
-| PutHit @ 12K | 8.09 | 6.48 | **-19.9%** |
-| PutHit @ 784K | 30.59 | 23.34 | **-23.7%** |
-| PutMiss @ 12K | 23.70 | 15.98 | **-32.6%** |
-| PutMiss @ 784K | 109.84 | 83.79 | **-23.7%** |
 
 
 
