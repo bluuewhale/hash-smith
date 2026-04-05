@@ -1,9 +1,9 @@
-# 실험 리더보드: exp-001-swissmap-perf
-마지막 업데이트: 2026-04-05 (iter-004)
+# Experiment Leaderboard: exp-001-swissmap-perf
+Last updated: 2026-04-05 (iter-004)
 
-| 순위 | Iteration | GetHit@12K | GetHit@784K | GetMiss@12K | GetMiss@784K | PutHit@12K | PutHit@784K | PutMiss@12K | PutMiss@784K | 전략 | 상태 |
-|------|-----------|------------|-------------|-------------|--------------|------------|-------------|-------------|--------------|------|------|
-| — | baseline | 5.59 | 17.98 | 5.84 | 16.51 | 8.09 | 30.59 | 23.70 | 109.84 | — | 기준 |
+| Rank | Iteration | GetHit@12K | GetHit@784K | GetMiss@12K | GetMiss@784K | PutHit@12K | PutHit@784K | PutMiss@12K | PutMiss@784K | Strategy | Status |
+|------|-----------|------------|-------------|-------------|--------------|------------|-------------|-------------|--------------|----------|--------|
+| — | baseline | 5.59 | 17.98 | 5.84 | 16.51 | 8.09 | 30.59 | 23.70 | 109.84 | — | Baseline |
 | 1 | iter-004-swar-match-shortcut | **4.402** | **13.056** | **4.750** | **13.058** | **6.428** | **21.602** | 17.601 | 79.756 | SWAR match shortcut in findIndexHashed | ✅ KEEP |
 | 2 | iter-005-putval-lazy-emptymask | 4.532 | 14.952 | 4.798 | 14.276 | 6.478 | 23.338 | **15.979** | 83.789 | Lazy emptyMask in putValHashed tombstones==0 | ✅ KEEP (PutMiss@12K -9.2%) |
 | 3 | iter-003-findindex-ilp | 4.95 | 15.76 | 5.01 | 14.28 | 6.70 | 23.85 | 16.97 | 69.91 | ILP hoisting in findIndexHashed | ✅ KEEP |
