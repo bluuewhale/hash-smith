@@ -1,6 +1,16 @@
 # Changelog
 ## Unreleased
 
+## 0.1.9
+### Performance
+- `SwissMap` / `ConcurrentSwissMap` put throughput improved 13–33% across all benchmark sizes via three optimizations (exp-001): (#15)
+  - Tombstone-free fast path in `putValHashed`: when `tombstones == 0` (the common case), the inner probe loop skips `DELETED_BROADCAST` scanning entirely.
+  - ILP hoisting: `emptyMask` and `eqMask` computations placed adjacently so the CPU's out-of-order engine can pipeline both independent SWAR ops.
+  - Fibonacci hash (`× 0x9e3779b97f4a7c15`) replaces the three-operation Murmur3 smear in `SwissMap` and `ConcurrentSwissMap`, reducing hash cost on every lookup.
+### Developer tooling
+- Added per-structure JMH Gradle tasks (`jmhSwissMap`, `jmhConcurrent`, `jmhFast`) and JSON result persistence. (#14)
+- Added `jmhCompare` task and `scripts/jmh_compare.py` for automated benchmark regression detection. (#14)
+
 ## 0.1.8
 ### Added
 - Added `ConcurrentSwissMap`: a sharded, thread-safe wrapper around `SwissMap`. (#10)
