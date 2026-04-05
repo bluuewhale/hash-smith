@@ -252,17 +252,17 @@ public class MapBenchmark {
 		bh.consume(s.swiss.get(s.nextHitKey()));
 	}
 
-//	@Benchmark
+	@Benchmark
 	public void fastutilGetHit(ReadState s, Blackhole bh) {
         bh.consume(s.fastutil.get(s.nextHitKey()));
 	}
 
-//	@Benchmark
+	@Benchmark
 	public void unifiedGetHit(ReadState s, Blackhole bh) {
         bh.consume(s.unified.get(s.nextHitKey()));
 	}
 
-//	@Benchmark
+	@Benchmark
 	public void jdkGetHit(ReadState s, Blackhole bh) {
         bh.consume(s.jdk.get(s.nextHitKey()));
 	}
@@ -277,17 +277,17 @@ public class MapBenchmark {
 		bh.consume(s.swiss.get(s.nextMissingKey()));
 	}
 
-//	@Benchmark
+	@Benchmark
 	public void fastutilGetMiss(ReadState s, Blackhole bh) {
         bh.consume(s.fastutil.get(s.nextMissingKey()));
 	}
 
-//	 @Benchmark
+	@Benchmark
 	public void unifiedGetMiss(ReadState s, Blackhole bh) {
         bh.consume(s.unified.get(s.nextMissingKey()));
 	}
 
-//	@Benchmark
+	@Benchmark
 	public void jdkGetMiss(ReadState s, Blackhole bh) {
         bh.consume(s.jdk.get(s.nextMissingKey()));
 	}
@@ -303,17 +303,17 @@ public class MapBenchmark {
         bh.consume(s.swiss.put(s.nextHitKey(), s.nextValue()));
 	}
 
-//    @Benchmark
+	@Benchmark
 	public void fastutilPutHit(PutHitState s, Blackhole bh) {
         bh.consume(s.fastutil.put(s.nextHitKey(), s.nextValue()));
 	}
 
-//	@Benchmark
+	@Benchmark
 	public void unifiedPutHit(PutHitState s, Blackhole bh) {
         bh.consume(s.unified.put(s.nextHitKey(), s.nextValue()));
 	}
 
-//	@Benchmark
+	@Benchmark
 	public void jdkPutHit(PutHitState s, Blackhole bh) {
         bh.consume(s.jdk.put(s.nextHitKey(), s.nextValue()));
 	}
@@ -328,17 +328,17 @@ public class MapBenchmark {
         bh.consume(s.swiss.put(s.nextMissKey(), s.nextValue()));
 	}
 
-//    @Benchmark
+	@Benchmark
 	public void fastutilPutMiss(PutMissState s, Blackhole bh) {
         bh.consume(s.fastutil.put(s.nextMissKey(), s.nextValue()));
 	}
 
-//    @Benchmark
+	@Benchmark
 	public void unifiedPutMiss(PutMissState s, Blackhole bh) {
         bh.consume(s.unified.put(s.nextMissKey(), s.nextValue()));
 	}
 
-//	@Benchmark
+	@Benchmark
 	public void jdkPutMiss(PutMissState s, Blackhole bh) {
         bh.consume(s.jdk.put(s.nextMissKey(), s.nextValue()));
 	}
