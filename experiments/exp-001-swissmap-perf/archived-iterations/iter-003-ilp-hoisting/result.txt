@@ -1,0 +1,27 @@
+iter-003-ilp-hoisting — Benchmark Results
+Source: benchmark-results/2026-04-04_22-10-42_swissmap.json
+
+Benchmark                      (size)  Mode  Cnt    Score     Error  Units
+MapBenchmark.swissSimdPutHit    12000  avgt    3    6.011 ±  0.707  ns/op
+MapBenchmark.swissSimdPutHit    48000  avgt    3    8.769 ±  3.761  ns/op
+MapBenchmark.swissSimdPutHit   196000  avgt    3   14.957 ±  6.925  ns/op
+MapBenchmark.swissSimdPutHit   784000  avgt    3   29.016 ±  2.078  ns/op
+MapBenchmark.swissSimdPutMiss   12000  avgt    3   17.514 ±  5.484  ns/op
+MapBenchmark.swissSimdPutMiss   48000  avgt    3   19.786 ± 75.725  ns/op
+MapBenchmark.swissSimdPutMiss  196000  avgt    3   59.059 ± 34.611  ns/op
+MapBenchmark.swissSimdPutMiss  784000  avgt    3  102.219 ± 58.161  ns/op
+
+Delta vs baseline (PutHit@12K=7.921, PutHit@784K=28.689, PutMiss@12K=18.443, PutMiss@784K=112.932):
+  PutHit@12K:    6.011 vs 7.921  = -24.1%  MAJOR IMPROVEMENT
+  PutHit@784K:  29.016 vs 28.689 = +1.1%   flat (within noise)
+  PutMiss@12K:  17.514 vs 18.443 = -5.0%   slight improvement
+  PutMiss@784K: 102.219 vs 112.932 = -9.5% still better than baseline (but regressed from iter-002's 67.8)
+
+Delta vs iter-002 (previous kept state):
+  PutHit@12K:    6.011 vs 9.266  = -35.1%  major recovery
+  PutHit@784K:  29.016 vs 30.704 = -5.5%   improvement
+  PutMiss@12K:  17.514 vs 18.301 = -4.3%   slight improvement
+  PutMiss@784K: 102.219 vs 67.799 = +50.7% regression (but ±58 ns error — high noise)
+
+Note: PutMiss@784K error bar is ±58.161 ns (57% of score) — result unreliable at this size.
+All metrics remain better than or within 10% of baseline per trade-off constraint.

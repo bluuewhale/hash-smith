@@ -1,0 +1,25 @@
+## Profile Snapshot — iter-004 (pre-optimization)
+Date: 2026-04-04
+Source benchmark: benchmark-results/2026-04-04_22-10-42_swissmap.json
+
+Current state after iter-003 (all 3 optimizations live):
+  PutHit@12K:    6.011 ±0.707 ns/op    (-24.1% vs baseline 7.921)
+  PutHit@784K:  29.016 ±2.078 ns/op    (+1.1% vs baseline 28.689)
+  PutMiss@12K:  17.514 ±5.484 ns/op    (-5.0% vs baseline 18.443)
+  PutMiss@784K:102.219 ±58.162 ns/op   (-9.5% vs baseline 112.932) [HIGH NOISE]
+
+Baseline:
+  PutHit@12K:    7.921 ns/op
+  PutHit@784K:  28.689 ns/op
+  PutMiss@12K:  18.443 ns/op
+  PutMiss@784K:112.932 ns/op
+
+Key observation:
+- findIndexHashed probe loop does NOT yet have ILP hoisting applied
+- Current code: eqMask computed first, then hasEmpty checked AFTER the eqMask while-loop
+- This means the two independent SWAR ops (eqMask + hasEmpty) are serialized
+- putValHashed already has them adjacent (iter-003); findIndexHashed lags behind
+
+Target path for optimization:
+- findIndexHashed: primary get/lookup path
+- findIndexHashedConcurrent: concurrent lookup path (NOT touched — different semantics)

@@ -1,0 +1,37 @@
+iter-006-loop-specialization JMH Results
+Date: 2026-04-04
+JSON: benchmark-results/2026-04-04_22-47-10_swissmap.json
+
+=== Raw Output (JMH) ===
+Benchmark: MapBenchmark.swissSimdPutHit
+  Parameters: (size = 12000)   -> 6.048 ±(99.9%) 0.602 ns/op  [min=6.011, avg=6.048, max=6.076]
+  Parameters: (size = 48000)   -> 11.356 ±(99.9%) 55.735 ns/op [high noise]
+  Parameters: (size = 196000)  -> 17.744 ±(99.9%) 25.958 ns/op
+  Parameters: (size = 784000)  -> 28.365 ±(99.9%) 42.724 ns/op
+
+Benchmark: MapBenchmark.swissSimdPutMiss
+  Parameters: (size = 12000)   -> 17.692 ±(99.9%) 11.426 ns/op
+  Parameters: (size = 48000)   -> 16.959 ±(99.9%) 21.442 ns/op
+  Parameters: (size = 196000)  -> 60.939 ±(99.9%) 55.002 ns/op
+  Parameters: (size = 784000)  -> 60.132 ±(99.9%) 34.789 ns/op
+
+=== Delta vs Baseline ===
+Baseline: PutHit@12K=7.921, PutHit@784K=28.689, PutMiss@12K=18.443, PutMiss@784K=112.932
+
+PutHit@12K:   6.048 ns  (delta: -23.6%)  ✅ KEEP criterion met
+PutHit@784K: 28.365 ns  (delta: -1.1%)   ✅ no regression
+PutMiss@12K: 17.692 ns  (delta: -4.1%)   ✅ slight improvement
+PutMiss@784K: 60.132 ns (delta: -46.7%)  ✅✅ MAJOR improvement
+
+=== Delta vs iter-003 (current best) ===
+iter-003: PutHit@12K=6.011, PutHit@784K=29.016, PutMiss@12K=17.514, PutMiss@784K=102.219
+
+PutHit@12K:   6.048 ns  (delta: +0.6% — within noise, essentially same)
+PutHit@784K: 28.365 ns  (delta: -2.2%  slight improvement)
+PutMiss@12K: 17.692 ns  (delta: +1.0% — within noise)
+PutMiss@784K: 60.132 ns (delta: -41.1% — massive improvement vs iter-003!)
+
+=== DECISION: KEEP ===
+PutHit@12K maintains -23.6% vs baseline (exceeds 10% threshold).
+PutMiss@784K -46.7% vs baseline is a massive additional win.
+No metric shows regression vs baseline.

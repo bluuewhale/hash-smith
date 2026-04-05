@@ -1,0 +1,282 @@
+> Task :compileJava UP-TO-DATE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+> Task :compileTestJava UP-TO-DATE
+> Task :processTestResources NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :compileJmhJava UP-TO-DATE
+> Task :processJmhResources NO-SOURCE
+> Task :jmhClasses UP-TO-DATE
+> Task :jmhRunBytecodeGenerator UP-TO-DATE
+> Task :jmhCompileGeneratedClasses UP-TO-DATE
+> Task :jmhJar UP-TO-DATE
+
+> Task :jmhSwissMap
+# JMH version: 1.37
+# VM version: JDK 21.0.9, OpenJDK 64-Bit Server VM, 21.0.9+10-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: --add-modules=jdk.incubator.vector --enable-preview --add-modules=jdk.incubator.vector --enable-preview
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 3 s each
+# Measurement: 3 iterations, 5 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Average time, time/op
+# Benchmark: io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutHit
+# Parameters: (size = 12000)
+
+# Run progress: 0.00% complete, ETA 00:02:48
+# Fork: 1 of 1
+WARNING: Using incubator modules: jdk.incubator.vector
+# Warmup Iteration   1: 8.010 ns/op
+# Warmup Iteration   2: 11.988 ns/op
+Iteration   1: 11.411 ns/op
+Iteration   2: 10.969 ns/op
+Iteration   3: 11.166 ns/op
+
+
+Result "io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutHit":
+  11.182 ±(99.9%) 4.043 ns/op [Average]
+  (min, avg, max) = (10.969, 11.182, 11.411), stdev = 0.222
+  CI (99.9%): [7.139, 15.225] (assumes normal distribution)
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.9, OpenJDK 64-Bit Server VM, 21.0.9+10-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: --add-modules=jdk.incubator.vector --enable-preview --add-modules=jdk.incubator.vector --enable-preview
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 3 s each
+# Measurement: 3 iterations, 5 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Average time, time/op
+# Benchmark: io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutHit
+# Parameters: (size = 48000)
+
+# Run progress: 12.50% complete, ETA 00:02:28
+# Fork: 1 of 1
+WARNING: Using incubator modules: jdk.incubator.vector
+# Warmup Iteration   1: 12.034 ns/op
+# Warmup Iteration   2: 11.875 ns/op
+Iteration   1: 12.715 ns/op
+Iteration   2: 12.369 ns/op
+Iteration   3: 12.480 ns/op
+
+
+Result "io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutHit":
+  12.521 ±(99.9%) 3.221 ns/op [Average]
+  (min, avg, max) = (12.369, 12.521, 12.715), stdev = 0.177
+  CI (99.9%): [9.300, 15.742] (assumes normal distribution)
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.9, OpenJDK 64-Bit Server VM, 21.0.9+10-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: --add-modules=jdk.incubator.vector --enable-preview --add-modules=jdk.incubator.vector --enable-preview
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 3 s each
+# Measurement: 3 iterations, 5 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Average time, time/op
+# Benchmark: io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutHit
+# Parameters: (size = 196000)
+
+# Run progress: 25.00% complete, ETA 00:02:07
+# Fork: 1 of 1
+WARNING: Using incubator modules: jdk.incubator.vector
+# Warmup Iteration   1: 15.315 ns/op
+# Warmup Iteration   2: 19.400 ns/op
+Iteration   1: 20.311 ns/op
+Iteration   2: 15.312 ns/op
+Iteration   3: 16.184 ns/op
+
+
+Result "io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutHit":
+  17.269 ±(99.9%) 48.712 ns/op [Average]
+  (min, avg, max) = (15.312, 17.269, 20.311), stdev = 2.670
+  CI (99.9%): [≈ 0, 65.980] (assumes normal distribution)
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.9, OpenJDK 64-Bit Server VM, 21.0.9+10-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: --add-modules=jdk.incubator.vector --enable-preview --add-modules=jdk.incubator.vector --enable-preview
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 3 s each
+# Measurement: 3 iterations, 5 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Average time, time/op
+# Benchmark: io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutHit
+# Parameters: (size = 784000)
+
+# Run progress: 37.50% complete, ETA 00:01:47
+# Fork: 1 of 1
+WARNING: Using incubator modules: jdk.incubator.vector
+# Warmup Iteration   1: 33.818 ns/op
+# Warmup Iteration   2: 27.961 ns/op
+Iteration   1: 30.948 ns/op
+Iteration   2: 30.723 ns/op
+Iteration   3: 29.706 ns/op
+
+
+Result "io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutHit":
+  30.459 ±(99.9%) 12.067 ns/op [Average]
+  (min, avg, max) = (29.706, 30.459, 30.948), stdev = 0.661
+  CI (99.9%): [18.392, 42.526] (assumes normal distribution)
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.9, OpenJDK 64-Bit Server VM, 21.0.9+10-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: --add-modules=jdk.incubator.vector --enable-preview --add-modules=jdk.incubator.vector --enable-preview
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 3 s each
+# Measurement: 3 iterations, 5 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Average time, time/op
+# Benchmark: io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutMiss
+# Parameters: (size = 12000)
+
+# Run progress: 50.00% complete, ETA 00:01:27
+# Fork: 1 of 1
+WARNING: Using incubator modules: jdk.incubator.vector
+# Warmup Iteration   1: 26.789 ns/op
+# Warmup Iteration   2: 17.809 ns/op
+Iteration   1: 18.169 ns/op
+Iteration   2: 18.617 ns/op
+Iteration   3: 18.067 ns/op
+
+
+Result "io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutMiss":
+  18.284 ±(99.9%) 5.333 ns/op [Average]
+  (min, avg, max) = (18.067, 18.284, 18.617), stdev = 0.292
+  CI (99.9%): [12.951, 23.617] (assumes normal distribution)
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.9, OpenJDK 64-Bit Server VM, 21.0.9+10-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: --add-modules=jdk.incubator.vector --enable-preview --add-modules=jdk.incubator.vector --enable-preview
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 3 s each
+# Measurement: 3 iterations, 5 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Average time, time/op
+# Benchmark: io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutMiss
+# Parameters: (size = 48000)
+
+# Run progress: 62.50% complete, ETA 00:01:05
+# Fork: 1 of 1
+WARNING: Using incubator modules: jdk.incubator.vector
+# Warmup Iteration   1: 46.914 ns/op
+# Warmup Iteration   2: 24.503 ns/op
+Iteration   1: 23.642 ns/op
+Iteration   2: 21.283 ns/op
+Iteration   3: 24.026 ns/op
+
+
+Result "io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutMiss":
+  22.984 ±(99.9%) 27.093 ns/op [Average]
+  (min, avg, max) = (21.283, 22.984, 24.026), stdev = 1.485
+  CI (99.9%): [≈ 0, 50.077] (assumes normal distribution)
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.9, OpenJDK 64-Bit Server VM, 21.0.9+10-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: --add-modules=jdk.incubator.vector --enable-preview --add-modules=jdk.incubator.vector --enable-preview
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 3 s each
+# Measurement: 3 iterations, 5 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Average time, time/op
+# Benchmark: io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutMiss
+# Parameters: (size = 196000)
+
+# Run progress: 75.00% complete, ETA 00:00:43
+# Fork: 1 of 1
+WARNING: Using incubator modules: jdk.incubator.vector
+# Warmup Iteration   1: 79.786 ns/op
+# Warmup Iteration   2: 68.919 ns/op
+Iteration   1: 70.607 ns/op
+Iteration   2: 63.770 ns/op
+Iteration   3: 62.078 ns/op
+
+
+Result "io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutMiss":
+  65.485 ±(99.9%) 82.379 ns/op [Average]
+  (min, avg, max) = (62.078, 65.485, 70.607), stdev = 4.515
+  CI (99.9%): [≈ 0, 147.863] (assumes normal distribution)
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.9, OpenJDK 64-Bit Server VM, 21.0.9+10-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: --add-modules=jdk.incubator.vector --enable-preview --add-modules=jdk.incubator.vector --enable-preview
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 3 s each
+# Measurement: 3 iterations, 5 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Average time, time/op
+# Benchmark: io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutMiss
+# Parameters: (size = 784000)
+
+# Run progress: 87.50% complete, ETA 00:00:21
+# Fork: 1 of 1
+WARNING: Using incubator modules: jdk.incubator.vector
+# Warmup Iteration   1: 138.016 ns/op
+# Warmup Iteration   2: 135.659 ns/op
+Iteration   1: 81.763 ns/op
+Iteration   2: 93.426 ns/op
+Iteration   3: 136.706 ns/op
+
+
+Result "io.github.bluuewhale.hashsmith.MapBenchmark.swissSimdPutMiss":
+  103.965 ±(99.9%) 528.115 ns/op [Average]
+  (min, avg, max) = (81.763, 103.965, 136.706), stdev = 28.948
+  CI (99.9%): [≈ 0, 632.080] (assumes normal distribution)
+
+
+# Run complete. Total time: 00:02:55
+
+REMEMBER: The numbers below are just data. To gain reusable insights, you need to follow up on
+why the numbers are the way they are. Use profilers (see -prof, -lprof), design factorial
+experiments, perform baseline and negative tests that provide experimental control, make sure
+the benchmarking environment is safe on JVM/OS/HW level, ask for reviews from the domain experts.
+Do not assume the numbers tell you what you want them to tell.
+
+NOTE: Current JVM experimentally supports Compiler Blackholes, and they are in use. Please exercise
+extra caution when trusting the results, look into the generated code to check the benchmark still
+works, and factor in a small probability of new VM bugs. Additionally, while comparisons between
+different JVMs are already problematic, the performance difference caused by different Blackhole
+modes can be very significant. Please make sure you use the consistent Blackhole mode for comparisons.
+
+Benchmark                      (size)  Mode  Cnt    Score     Error  Units
+MapBenchmark.swissSimdPutHit    12000  avgt    3   11.182 ±   4.043  ns/op
+MapBenchmark.swissSimdPutHit    48000  avgt    3   12.521 ±   3.221  ns/op
+MapBenchmark.swissSimdPutHit   196000  avgt    3   17.269 ±  48.712  ns/op
+MapBenchmark.swissSimdPutHit   784000  avgt    3   30.459 ±  12.067  ns/op
+MapBenchmark.swissSimdPutMiss   12000  avgt    3   18.284 ±   5.333  ns/op
+MapBenchmark.swissSimdPutMiss   48000  avgt    3   22.984 ±  27.093  ns/op
+MapBenchmark.swissSimdPutMiss  196000  avgt    3   65.485 ±  82.379  ns/op
+MapBenchmark.swissSimdPutMiss  784000  avgt    3  103.965 ± 528.115  ns/op
+
+Benchmark result is saved to benchmark-results/2026-04-05_02-46-41_swissmap.json
+
+[Incubating] Problems report is available at: file:///Users/donghyungko/.superset/worktrees/hash-smith/feat/optimization/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.2.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 2m 56s
+7 actionable tasks: 1 executed, 6 up-to-date

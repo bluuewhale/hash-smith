@@ -1,0 +1,22 @@
+# Profile Snapshot — iter-009-prefetch-ctrl
+## Source: benchmark-results/2026-04-04_23-02-56_swissmap.json (iter-008 post-revert, effectively iter-006 code)
+
+Current best (iter-006-loop-specialization):
+- PutHit@12K:   6.048 ns/op  (-23.6% vs baseline)
+- PutHit@784K: 28.365 ns/op  (-1.1% vs baseline)
+- PutMiss@12K: 17.692 ns/op  (-4.1% vs baseline)
+- PutMiss@784K: 60.132 ns/op (-46.7% vs baseline)
+
+Latest benchmark JSON results (2026-04-04_23-02-56):
+| Benchmark       | Score (ns/op) | Error      |
+|-----------------|---------------|------------|
+| swissSimdPutHit |  5.947        | ±0.969     |
+| swissSimdPutHit | 10.262        | ±1.231     |
+| swissSimdPutHit | 14.694        | ±17.602    |
+| swissSimdPutHit | 28.403        | ±9.302     |
+| swissSimdPutMiss| 18.161        | ±6.817     |
+| swissSimdPutMiss| 18.344        | ±25.428    |
+| swissSimdPutMiss| 60.733        | ±20.918    |
+| swissSimdPutMiss|117.143        | ±109.762   |
+
+Note: swissSimdPutHit@784K = 28.403 ns ≈ iter-006 reported 28.365 ns (same codebase)

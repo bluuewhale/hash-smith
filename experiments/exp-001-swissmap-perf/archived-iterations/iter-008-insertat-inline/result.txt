@@ -1,0 +1,30 @@
+Benchmark: MapBenchmark.swissSimdPutHit
+  Parameters: (size = 12000)   -> 5.947 ±(99.9%) 0.969 ns/op
+  Parameters: (size = 48000)   -> 10.262 ±(99.9%) 1.231 ns/op
+  Parameters: (size = 196000)  -> 14.694 ±(99.9%) 17.602 ns/op
+  Parameters: (size = 784000)  -> 28.403 ±(99.9%) 9.302 ns/op
+Benchmark: MapBenchmark.swissSimdPutMiss
+  Parameters: (size = 12000)   -> 18.161 ±(99.9%) 6.817 ns/op
+  Parameters: (size = 784000)  -> 117.143 ±(99.9%) 109.762 ns/op  *** REGRESSION ***
+
+Baseline: PutHit@12K=7.921, PutHit@784K=28.689, PutMiss@12K=18.443, PutMiss@784K=112.932
+iter-006: PutHit@12K=6.048, PutHit@784K=28.365, PutMiss@12K=17.692, PutMiss@784K=60.132
+
+iter-008 vs baseline:
+  PutHit@12K:   5.947 ns  (-24.9%)  ✅ improvement
+  PutHit@784K: 28.403 ns  (-1.0%)   ✅ no regression
+  PutMiss@12K: 18.161 ns  (-1.5%)   ✅ within noise
+  PutMiss@784K: 117.143 ns (+3.7%)  ⚠️  within the 10% rule, but massively worse than iter-006
+
+iter-008 vs iter-006 (current best):
+  PutHit@12K:   -1.7%  (marginal improvement)
+  PutHit@784K:  +0.1%  (noise)
+  PutMiss@12K:  +2.7%  (slight regression, within noise)
+  PutMiss@784K: +94.8% ❌ MASSIVE REGRESSION — iter-006 was 60.132, now 117.143
+
+DECISION: REVERT
+Reason: PutMiss@784K regression from 60.132 → 117.143 ns (+94.8% vs iter-006).
+Although still within the strict 10% baseline rule (+3.7%), this completely undoes
+the biggest win from iter-006. The optimization is not acceptable.
+
+Raw JSON: benchmark-results/2026-04-04_23-02-56_swissmap.json

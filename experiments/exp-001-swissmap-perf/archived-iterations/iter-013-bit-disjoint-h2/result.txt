@@ -1,0 +1,24 @@
+# Benchmark Results — iter-013-bit-disjoint-h2
+# Run: 2026-04-05_03-00-53_swissmap.json
+
+Benchmark                      (size)  Mode  Cnt   Score     Error  Units
+MapBenchmark.swissSimdPutHit    12000  avgt    3   7.042 ±   9.299  ns/op
+MapBenchmark.swissSimdPutHit    48000  avgt    3  10.016 ±   2.635  ns/op
+MapBenchmark.swissSimdPutHit   196000  avgt    3  16.677 ±  23.977  ns/op
+MapBenchmark.swissSimdPutHit   784000  avgt    3  33.587 ±  43.736  ns/op
+MapBenchmark.swissSimdPutMiss   12000  avgt    3  21.012 ±   4.214  ns/op
+MapBenchmark.swissSimdPutMiss   48000  avgt    3  20.397 ±  38.178  ns/op
+MapBenchmark.swissSimdPutMiss  196000  avgt    3  70.193 ±  42.420  ns/op
+MapBenchmark.swissSimdPutMiss  784000  avgt    3  91.350 ± 476.776  ns/op
+
+=== vs Baseline ===
+PutHit@12K:   7.042 ns  (-11.1% vs baseline 7.921)
+PutHit@784K: 33.587 ns  (+17.1% vs baseline 28.689)  *** REGRESSION ***
+PutMiss@12K: 21.012 ns  (+13.9% vs baseline 18.443)  *** REGRESSION ***
+
+=== vs iter-011 (current best) ===
+PutHit@12K:   7.042 ns  (+18.3% worse vs iter-011 5.954)
+PutHit@784K: 33.587 ns  (+27.1% worse vs iter-011 26.435)
+PutMiss@12K: 21.012 ns  (+23.6% worse vs iter-011 17.006)
+
+DECISION: REVERT

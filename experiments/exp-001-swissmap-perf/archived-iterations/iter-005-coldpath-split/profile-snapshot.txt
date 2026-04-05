@@ -1,0 +1,19 @@
+# Profile Snapshot — iter-005-coldpath-split
+# Source: benchmark-results/2026-04-04_22-18-18_swissmap.json (latest, iter-003 state)
+
+Metric                       Score (ns/op)   Error
+----------------------------------------------------
+swissSimdPutHit  size=12000    9.222          ±1.270
+swissSimdPutHit  size=48000    8.118          ±4.770
+swissSimdPutHit  size=196000  15.973         ±16.064
+swissSimdPutHit  size=784000  31.209         ±10.067
+swissSimdPutMiss size=12000   16.768         ±10.812
+swissSimdPutMiss size=48000   14.429         ±33.132
+swissSimdPutMiss size=196000  54.513         ±11.159
+swissSimdPutMiss size=784000  76.922         ±83.168
+
+# Current best (iter-003):
+# PutHit@12K: 6.011 ns (-24% vs baseline 7.921)
+# PutHit@784K: 29.016 ns (+1% vs baseline 28.689)
+# PutMiss@12K: 17.514 ns (-5% vs baseline 18.443)
+# PutMiss@784K: ~102 ns noisy (baseline 112.932)

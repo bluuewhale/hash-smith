@@ -1,0 +1,45 @@
+Profile Snapshot — iter-001-skip-tombstone-scan
+================================================
+Date: 2026-04-04
+Method: Static code analysis of hot paths in SwissSimdMap.putVal and findIndex
+
+HOT PATHS
+---------
+1. putVal (PutHit benchmark path)
+   - loadCtrlVector(base)                 [ctrl array read, ~1 cache line per group]
+   - v.eq(h2).toLong()                    [SIMD match scan]
+   - keys[idx] equality check             [heap object read — likely cache miss at 784K]
+   - vals[idx] = value                    [write]
+
+2. putVal (PutMiss benchmark path)
+   - Per group loop iteration:
+     a. loadCtrlVector(base)              [ctrl cache line load]
+     b. v.eq(h2).toLong()                [SIMD fingerprint match — miss expected]
+     c. v.eq(DELETED).toLong()           [SIMD tombstone scan — ALWAYS done even if tombstones==0!]
+     d. v.eq(EMPTY).toLong()             [SIMD empty slot scan]
+   - Probe continues until emptyMask != 0
+
+BOTTLENECK ANALYSIS
+-------------------
+- PutMiss@784K = 112.9ns suggests ~3-4 LLC misses (30ns each)
+- Table at 784K entries with 7/8 load factor = ~896K slots
+- 896K slots / 16 slots-per-group = 56K groups
+- Expected probe length for fresh table (no tombstones): ~2-3 groups before hitting empty
+- Each group = 1 cache line for ctrl, but keys[] dereference = pointer chase
+
+KEY HOTSPOT IDENTIFIED:
+- In putVal, the tombstone check `v.eq(DELETED).toLong()` is done every group iteration
+  even when `tombstones == 0`. This adds a vector comparison + toLong() per group.
+- The guard `if (firstTombstone < 0)` prevents recording duplicates but NOT the SIMD op.
+- For a benchmark that never removes keys (PutHit = update existing, PutMiss = insert fresh),
+  tombstones will ALWAYS be 0. This is pure wasted work.
+
+SECONDARY OBSERVATION:
+- h1() extracts bits using (hash & H1_MASK) >>> 7 which keeps 25 high bits, masking with groupMask
+  This is fine for distribution.
+- No prefetching of next group's ctrl bytes during probe loop
+
+ESTIMATED SAVINGS:
+- Skip tombstone SIMD op: removes ~1 vector compare + toLong per probe group when tombstones==0
+- For PutMiss with ~2 probe groups: saves ~2 vector ops + conditional branches
+- Vector ops are fast but bypassing them removes instruction pressure and potential pipeline stalls

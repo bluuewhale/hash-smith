@@ -1,0 +1,38 @@
+# Profile Snapshot — iter-007 (pre-change)
+# Source: benchmark-results/2026-04-04_22-47-10_swissmap.json
+# State: iter-006-loop-specialization (current best)
+
+## Benchmark Results (ns/op)
+swissSimdPutHit  @12K:   6.048 ± 0.602
+swissSimdPutHit  @48K:  11.356 ± 55.735
+swissSimdPutHit  @196K: 17.744 ± 25.958
+swissSimdPutHit  @784K: 28.365 ± 42.724
+swissSimdPutMiss @12K:  17.692 ± 11.426
+swissSimdPutMiss @48K:  16.959 ± 21.442
+swissSimdPutMiss @196K: 60.939 ± 55.002
+swissSimdPutMiss @784K: 60.132 ± 34.789
+
+## Hot Path Analysis: findIndexHashed (lines 574-600)
+
+Current probe loop body (sequential):
+  1. long word = ctrl[g];          -- load ctrl word
+  2. int base = g << 3;
+  3. int eqMask = eqMask(word, h2Broadcast);  -- SWAR compare (independent of step 4)
+  4.   [inner while: match + equals check]
+  5. if (hasEmpty(word) != 0) return -1;  -- SWAR empty check (independent of step 3)
+  6. g = (g + (++step)) & mask;
+
+Steps 3 and 5 are INDEPENDENT SWAR operations on the same `word`.
+Opportunity: hoist hasEmpty(word) computation to be adjacent to eqMask(word, h2Broadcast),
+so OOO CPU can issue both in parallel (same as iter-003 did for putValHashed).
+
+Key difference from iter-004 failure:
+- iter-004 tried to use emptyBits across loop iterations (live variable spill)
+- iter-007: hasEmpty result consumed IMMEDIATELY in same iteration (early exit only)
+  => No cross-iteration live variable; no register spill risk
+
+## Strategy
+Apply ILP hoisting to findIndexHashed:
+- Compute eqMask and emptyBits adjacently at loop top
+- Store emptyBits as local long (consumed same iteration only)
+- No structural changes; pure instruction-order optimization

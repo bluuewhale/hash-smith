@@ -1,0 +1,40 @@
+# Benchmark Result: iter-009-prefetch-ctrl
+
+## Strategy: h2 fingerprint improvement — XOR low bits with high bits
+
+## Source: benchmark-results/2026-04-04_23-17-52_swissmap.json
+
+| Benchmark             | Size   | Score (ns/op) | Error (±)   |
+|-----------------------|--------|---------------|-------------|
+| swissSimdPutHit       | 12000  | 6.053         | ±1.481      |
+| swissSimdPutHit       | 48000  | 10.395        | ±4.584      |
+| swissSimdPutHit       | 196000 | 14.573        | ±2.735      |
+| swissSimdPutHit       | 784000 | 27.556        | ±12.984     |
+| swissSimdPutMiss      | 12000  | 18.447        | ±8.363      |
+| swissSimdPutMiss      | 48000  | 20.524        | ±127.402    |
+| swissSimdPutMiss      | 196000 | 63.701        | ±171.452    |
+| swissSimdPutMiss      | 784000 | 106.510       | ±145.051    |
+
+## vs Baseline (iter-006 = current best)
+| Metric           | iter-006  | iter-009  | Delta      |
+|------------------|-----------|-----------|------------|
+| PutHit@12K       | 6.048 ns  | 6.053 ns  | +0.1%      |
+| PutHit@784K      | 28.365 ns | 27.556 ns | -2.9%      |
+| PutMiss@12K      | 17.692 ns | 18.447 ns | +4.3%      |
+| PutMiss@784K     | 60.132 ns |106.510 ns | +77.1% ❌   |
+
+## vs Absolute Baseline
+| Metric           | baseline  | iter-009  | Delta      |
+|------------------|-----------|-----------|------------|
+| PutHit@12K       | 7.921 ns  | 6.053 ns  | -23.6%     |
+| PutHit@784K      | 28.689 ns | 27.556 ns | -3.9%      |
+| PutMiss@12K      | 18.443 ns | 18.447 ns | +0.0%      |
+| PutMiss@784K     | 112.932 ns|106.510 ns | -5.7%      |
+
+## Decision: REVERT ❌
+
+PutMiss@784K regressed by +77.1% vs iter-006 (current best). This exceeds the >10% revert threshold.
+PutMiss@784K at 106.5ns is worse than even the baseline (112.9ns only slightly better).
+
+Note: The error bars are very large (±145ns for PutMiss@784K), suggesting high noise,
+but the point estimate is clearly degraded.

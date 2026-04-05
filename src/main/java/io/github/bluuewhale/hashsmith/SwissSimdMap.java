@@ -278,7 +278,7 @@ public class SwissSimdMap<K, V> extends AbstractArrayMap<K, V> {
                 }
                 eqMask &= eqMask - 1; // clear LSB
             }
-            if (firstTombstone < 0) {
+            if (firstTombstone < 0 && tombstones > 0) {
                 long delMask = v.eq(DELETED).toLong();
                 if (delMask != 0) firstTombstone = base + Long.numberOfTrailingZeros(delMask);
             }

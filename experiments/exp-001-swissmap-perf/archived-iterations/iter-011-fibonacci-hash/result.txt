@@ -1,0 +1,34 @@
+# Benchmark Result: iter-011-fibonacci-hash
+# Source: benchmark-results/2026-04-04_23-40-27_swissmap.json
+
+## Raw Results (ns/op, lower is better)
+Benchmark                      (size)  Mode  Cnt   Score    Error  Units
+MapBenchmark.swissSimdPutHit    12000  avgt    3   5.954 ±  0.841  ns/op
+MapBenchmark.swissSimdPutHit    48000  avgt    3  10.850 ±  2.326  ns/op
+MapBenchmark.swissSimdPutHit   196000  avgt    3  11.371 ± 10.889  ns/op
+MapBenchmark.swissSimdPutHit   784000  avgt    3  26.435 ±  2.414  ns/op
+MapBenchmark.swissSimdPutMiss   12000  avgt    3  17.006 ±  3.166  ns/op
+MapBenchmark.swissSimdPutMiss   48000  avgt    3  15.475 ± 25.077  ns/op
+MapBenchmark.swissSimdPutMiss  196000  avgt    3  60.003 ±  3.568  ns/op
+MapBenchmark.swissSimdPutMiss  784000  avgt    3  71.225 ± 52.768  ns/op
+
+## Comparison vs Baseline (7.921 / 28.689 / 18.443 / 112.932 ns/op)
+- PutHit@12K:   5.954 ns  → -24.8% vs baseline  (iter-006: -23.6%) ✅ IMPROVED
+- PutHit@784K: 26.435 ns  →  -7.9% vs baseline  (iter-006:  -1.1%) ✅ IMPROVED
+- PutMiss@12K: 17.006 ns  →  -7.8% vs baseline  (iter-006:  -4.1%) ✅ IMPROVED
+- PutMiss@784K: 71.225 ns → -36.9% vs baseline  (iter-006: -46.7%) ⚠️  WORSE THAN iter-006
+
+## Comparison vs iter-006 (current best: 6.048 / 28.365 / 17.692 / 60.132)
+- PutHit@12K:   5.954 vs 6.048  → -1.6%  marginal improvement
+- PutHit@784K: 26.435 vs 28.365 → -6.8%  notable improvement
+- PutMiss@12K: 17.006 vs 17.692 → -3.9%  improvement
+- PutMiss@784K: 71.225 vs 60.132 → +18.5% regression (but error ±52.768 — HIGH NOISE)
+
+## Success criteria check
+- Any metric 10%+ improvement vs baseline? YES: PutHit@12K -24.8% ✅
+- Any metric >10% worse than BASELINE? NO: PutMiss@784K is -36.9% vs baseline ✅
+→ KEEP (meets criteria)
+
+## Notes
+PutMiss@784K ±52.768 ns error is extremely high — result unreliable.
+PutHit@784K improvement (-6.8% vs iter-006) is noteworthy and within low error margin (±2.414).

@@ -418,6 +418,47 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		int mask = ctrl.length - 1;
 		int g = h1 & mask; // optimized modulo operation (same as h1 % nGroups)
 		int step = 0; // triangular probing step over groups
+
+		// Fast path: no tombstones (99%+ case) — skip DELETED_BROADCAST scan entirely.
+		// Lazy emptyMask shortcut: compute eqMask first; if eqMask != 0, enter the key-equality
+		// loop immediately. On PutHit, the key is found and we return without ever computing
+		// emptyMask — saving one SWAR multiply on the dominant update path.
+		if (tombstones == 0) {
+			for (;;) {
+				long word = ctrl[g];
+				int base = g << 3;
+				int eqMask = eqMask(word, h2Broadcast);
+				if (eqMask != 0) {
+					do {
+						int idx = base + Integer.numberOfTrailingZeros(eqMask);
+						Object k = keys[idx];
+						// Non-concurrent path does not need to keep the NULL-safe check.
+						if (k == key || k.equals(key)) {
+							V old = castValue(vals[idx]);
+							vals[idx] = value;
+							return old;
+						}
+						eqMask &= eqMask - 1; // clear LSB
+					} while (eqMask != 0);
+					// Fell through all candidates — check for empty to find insert slot.
+					int emptyMask = eqMask(word, EMPTY_BROADCAST);
+					if (emptyMask != 0) {
+						int idx = base + Integer.numberOfTrailingZeros(emptyMask);
+						return insertAt(idx, key, value, h2);
+					}
+				} else {
+					// No h2 match — check for empty slot to insert.
+					int emptyMask = eqMask(word, EMPTY_BROADCAST);
+					if (emptyMask != 0) {
+						int idx = base + Integer.numberOfTrailingZeros(emptyMask);
+						return insertAt(idx, key, value, h2);
+					}
+				}
+				g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
+			}
+		}
+
+		// Slow path: tombstones present — track firstTombstone for reuse.
 		int firstTombstone = -1;
 		for (;;) {
 			long word = ctrl[g];
@@ -541,19 +582,26 @@ public class SwissMap<K, V> extends AbstractArrayMap<K, V> {
 		for (;;) {
 			long word = ctrl[g];
 			int base = g << 3;
+			// SWAR match shortcut: compute eqMask first; if there's a candidate match,
+			// enter the key-equality loop immediately without computing emptyMask.
+			// emptyMask is only needed on the cold path (no h2 match in this group).
+			// This saves one SWAR multiply on the dominant first-probe hit path.
 			int eqMask = eqMask(word, h2Broadcast);
-			while (eqMask != 0) {
-				int idx = base + Integer.numberOfTrailingZeros(eqMask);
-				Object k = keys[idx];
-				// Non-concurrent path does not need to keep the NULL-safe check.
-				if (k == key || k.equals(key)) {
-					return idx;
-				}
-				eqMask &= eqMask - 1; // clear LSB
-			}
-			int emptyMask = eqMask(word, EMPTY_BROADCAST);
-			if (emptyMask != 0) {
-				return -1;
+			if (eqMask != 0) {
+				do {
+					int idx = base + Integer.numberOfTrailingZeros(eqMask);
+					Object k = keys[idx];
+					// Non-concurrent path does not need to keep the NULL-safe check.
+					if (k == key || k.equals(key)) {
+						return idx;
+					}
+					eqMask &= eqMask - 1; // clear LSB
+				} while (eqMask != 0);
+				// Fell through all candidates in this group — check for empty to terminate.
+				if (eqMask(word, EMPTY_BROADCAST) != 0) return -1;
+			} else {
+				// No h2 match — check for empty slot to terminate probe.
+				if (eqMask(word, EMPTY_BROADCAST) != 0) return -1;
 			}
 			g = (g + (++step)) & mask; // triangular (quadratic) probing over groups
 		}

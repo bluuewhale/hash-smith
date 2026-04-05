@@ -1,0 +1,10 @@
+iter-001-tombstone-guard benchmark results (from 2026-04-05_08-04-06_swissmap.json)
+
+swissGetHit  size=12000   5.601 ns/op
+swissGetHit  size=784000  15.987 ns/op
+swissGetMiss size=12000   5.948 ns/op
+swissGetMiss size=784000  16.393 ns/op
+swissPutHit  size=12000   8.409 ns/op
+swissPutHit  size=784000  35.630 ns/op
+swissPutMiss size=12000   23.917 ns/op
+swissPutMiss size=784000  96.153 ns/op

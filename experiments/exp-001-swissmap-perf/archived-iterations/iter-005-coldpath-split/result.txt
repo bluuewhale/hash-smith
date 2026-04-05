@@ -1,0 +1,20 @@
+# iter-005-coldpath-split — Benchmark Result
+# Source: benchmark-results/2026-04-04_22-26-02_swissmap.json
+
+Benchmark                      (size)  Mode  Cnt   Score    Error  Units
+MapBenchmark.swissSimdPutHit    12000  avgt    3   9.223 ±  0.521  ns/op
+MapBenchmark.swissSimdPutHit    48000  avgt    3  10.918 ±  2.764  ns/op
+MapBenchmark.swissSimdPutHit   196000  avgt    3  11.481 ± 16.685  ns/op
+MapBenchmark.swissSimdPutHit   784000  avgt    3  32.070 ± 11.080  ns/op
+MapBenchmark.swissSimdPutMiss   12000  avgt    3  18.657 ±  8.711  ns/op
+MapBenchmark.swissSimdPutMiss   48000  avgt    3  16.477 ± 36.006  ns/op
+MapBenchmark.swissSimdPutMiss  196000  avgt    3  61.613 ± 30.455  ns/op
+MapBenchmark.swissSimdPutMiss  784000  avgt    3  76.356 ± 88.288  ns/op
+
+# vs Baseline:
+# PutHit@12K:   9.223 vs 7.921 = +16.4% !! REGRESSION
+# PutHit@784K: 32.070 vs 28.689 = +11.8% !! REGRESSION
+# PutMiss@12K: 18.657 vs 18.443 = +1.2%
+# PutMiss@784K: 76.356 vs 112.932 = -32.4% (improved)
+
+# Decision: REVERT (PutHit@12K and PutHit@784K both >10% regression vs baseline)

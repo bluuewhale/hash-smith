@@ -1,0 +1,36 @@
+# Profile Snapshot — iter-013-bit-disjoint-h2
+# Source: benchmark-results/2026-04-05_02-52-55_swissmap.json (iter-012, noisy)
+# Current base: iter-011 (kept, best leaderboard)
+
+## iter-011 best (leaderboard):
+- PutHit@12K:   5.954 ns  (-24.8% vs baseline)
+- PutHit@784K: 26.435 ns  (-7.9%  vs baseline)
+- PutMiss@12K: 17.006 ns  (-7.8%  vs baseline)
+- PutMiss@784K: ~71.2 ns* (noisy, unreliable)
+
+## Baseline:
+- PutHit@12K:   7.921 ns
+- PutHit@784K: 28.689 ns
+- PutMiss@12K: 18.443 ns
+- PutMiss@784K: 112.932 ns
+
+## Current h1/h2 split (iter-011):
+- h1 = hash >>> 7          (bits 31..7, 25 bits used for group selection via &(nGroups-1))
+- h2 = hash & 0x7F         (bits 6..0, 7 bits fingerprint)
+- H2_MASK = 0x0000007F
+
+## Proposed h1/h2 split (iter-013):
+- h2 = (byte)(hash >>> 25)  (bits 31..25, 7 bits — MSB=0 guaranteed only if bit31=0)
+- h1 = hash & 0x1FFFFFF     (bits 24..0, 25 bits)
+- Note: MSB safety — Fibonacci hash is a 32-bit result, bit31 can be 1.
+  If bit31=1, (byte)(hash>>>25) = upper 7 bits of int cast to byte;
+  EMPTY=0x80, DELETED=0xFE — must ensure h2 != 0x80 and != 0xFE.
+  The original design ensures h2 <= 0x7F via mask. With upper-bit h2,
+  bit31 maps to sign bit of byte — if hash>>>25 & 0x80 != 0, h2 would collide with EMPTY.
+  Fix: use (byte)((hash >>> 25) & 0x7F) to clamp to 7 bits safely.
+  This uses bits 31..25 but zeroes bit7 of the byte (the MSB).
+
+## Strategy:
+  h2 = (byte)((hash >>> 25) & 0x7F)  — bits 31..25 → 7-bit fingerprint, safe
+  h1 = hash & 0x1FFFFFF               — bits 24..0 → 25-bit group index
+  These are fully non-overlapping bit ranges.

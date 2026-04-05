@@ -1,0 +1,30 @@
+# Profile Snapshot — iter-011-fibonacci-hash
+# Taken from: benchmark-results/2026-04-04_23-28-44_swissmap.json (latest = iter-010 reverted, iter-006 state)
+
+## Baseline (iter-006-loop-specialization, current best)
+PutHit@12K:   6.020 ± 2.174 ns/op
+PutHit@784K:  31.277 ± 14.170 ns/op  (noisy; leaderboard reports 28.4ns)
+PutMiss@12K:  16.146 ± 28.946 ns/op  (noisy; leaderboard reports 17.7ns)
+PutMiss@784K: 55.376 ± 0.767 ns/op   (leaderboard reports 60.1ns)
+
+## Hash function analysis
+Current: Hashing.smear() = C2 * Integer.rotateLeft(hashCode * C1, 15)
+  - 2 × 32-bit multiplications
+  - 1 × rotateLeft (compiled to single rotate instruction)
+  - Total: ~3 instructions in the multiply chain
+
+Fibonacci alternative: (int)(((long)hashCode * 0x9e3779b97f4a7c15L) >>> 32)
+  - 1 × 64-bit multiplication (single IMULQ on x86-64)
+  - 1 × unsigned right shift
+  - Total: ~2 instructions, single multiply latency on modern CPUs (3-4 cycles vs ~6-9 for Murmur chain)
+
+## Hypothesis
+hash() is called once per putVal before putValHashed. At 12K (L1/L2 resident),
+the hash computation contributes ~1-2ns out of the 6ns per-op cost.
+Reducing from 3-multiply chain to 1-multiply could yield 5-15% improvement on PutHit@12K and PutMiss@12K.
+784K benchmarks are L3-latency dominated; improvement expected to be smaller.
+
+## Distribution quality
+Fibonacci hashing with 0x9e3779b97f4a7c15L (64-bit golden ratio constant) is
+widely validated (used in Knuth, Rust std, etc). For Integer keys the avalanche
+is sufficient for SwissTable h2 (7-bit fingerprint).

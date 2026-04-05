@@ -102,8 +102,8 @@ dependencies {
 </table>
 
 ## Benchmark (JMH, CPU ns/op)
-- All benchmarks were run on Windows 11 (x64) with Eclipse Temurin JDK 21.0.9, on an AMD Ryzen 5 5600 (6C/12T).
-- At high load factors SwissMap (SWAR) stay competitive against other open-addressing tables and close to JDK HashMap performance; depending on hardware/JVM, one may edge out the other.
+- All benchmarks run on the same machine: Eclipse Temurin JDK 21, macOS/Apple Silicon, `AverageTime` mode, 3 forks.
+- SwissMap numbers reflect exp-001 optimizations.
 
 | put hit                                     | put miss                                      |
 |---------------------------------------------|-----------------------------------------------|
@@ -112,6 +112,19 @@ dependencies {
 | get hit | get miss |
 | --- | --- |
 | ![CPU: get hit](images/map-cpu-get-hit.png) | ![CPU: get miss](images/map-cpu-get-miss.png) |
+
+### exp-001 optimization summary (ns/op, lower is better)
+
+| Metric | Baseline | Optimized | Δ |
+|---|---|---|---|
+| GetHit @ 12K | 5.59 | 4.53 | **-18.9%** |
+| GetHit @ 784K | 17.98 | 14.95 | **-16.8%** |
+| GetMiss @ 12K | 5.84 | 4.80 | **-17.8%** |
+| GetMiss @ 784K | 16.51 | 14.28 | **-13.5%** |
+| PutHit @ 12K | 8.09 | 6.48 | **-19.9%** |
+| PutHit @ 784K | 30.59 | 23.34 | **-23.7%** |
+| PutMiss @ 12K | 23.70 | 15.98 | **-32.6%** |
+| PutMiss @ 784K | 109.84 | 83.79 | **-23.7%** |
 
 
 

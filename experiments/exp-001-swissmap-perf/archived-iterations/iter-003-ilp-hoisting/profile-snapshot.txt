@@ -1,0 +1,16 @@
+Profile Snapshot — iter-003-ilp-hoisting
+Source: benchmark-results/2026-04-04_22-02-49_swissmap.json (today's most recent run)
+
+Current state (after iter-002-fast-empty-detect, kept):
+  PutHit@12K:    9.266 ns/op   (baseline 7.921, +17.0% REGRESSION)
+  PutHit@784K:  30.704 ns/op   (baseline 28.689, +7.0% regression)
+  PutMiss@12K:  18.301 ns/op   (baseline 18.443, -0.8% flat)
+  PutMiss@784K: 67.799 ns/op   (baseline 112.932, -40.0% GAIN to preserve)
+
+Baseline:
+  PutHit@12K:    7.921 ns/op
+  PutHit@784K:  28.689 ns/op
+  PutMiss@12K:  18.443 ns/op
+  PutMiss@784K: 112.932 ns/op
+
+Key concern: PutHit@12K is 17% above baseline — must recover.

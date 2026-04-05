@@ -1,0 +1,39 @@
+# Profile Snapshot: iter-015-restore-h1h2-split
+# Date: 2026-04-05
+# Based on: benchmark-results/2026-04-05_03-11-54_swissmap.json (latest)
+
+## Current Benchmark State (latest run = iter-014 reverted code)
+Benchmark                      (size)  Mode  Cnt    Score    Error  Units
+MapBenchmark.swissSimdPutHit    12000  avgt    3   10.788 ±  14.627  ns/op  [HIGH NOISE]
+MapBenchmark.swissSimdPutHit    48000  avgt    3   10.614 ±   9.010  ns/op
+MapBenchmark.swissSimdPutHit   196000  avgt    3   18.754 ±  71.510  ns/op  [HIGH NOISE]
+MapBenchmark.swissSimdPutHit   784000  avgt    3   31.058 ±  27.539  ns/op  [HIGH NOISE]
+MapBenchmark.swissSimdPutMiss   12000  avgt    3   19.671 ±   9.101  ns/op
+MapBenchmark.swissSimdPutMiss   48000  avgt    3   23.550 ±  95.054  ns/op  [HIGH NOISE]
+MapBenchmark.swissSimdPutMiss  196000  avgt    3   61.320 ±  74.184  ns/op  [HIGH NOISE]
+MapBenchmark.swissSimdPutMiss  784000  avgt    3   76.234 ±  47.897  ns/op
+
+## Reference: iter-011 measured best (claimed base)
+MapBenchmark.swissSimdPutHit    12000:  5.954 ± 0.841 ns/op
+MapBenchmark.swissSimdPutHit   784000: 26.435 ± 2.414 ns/op
+MapBenchmark.swissSimdPutMiss   12000: 17.006 ± 3.166 ns/op
+MapBenchmark.swissSimdPutMiss  784000: 71.225 ± 52.768 ns/op
+
+## Baseline (original, pre-all-experiments)
+MapBenchmark.swissSimdPutHit    12000:  7.921 ± 0.649 ns/op
+MapBenchmark.swissSimdPutHit   784000: 28.689 ± 13.360 ns/op
+MapBenchmark.swissSimdPutMiss   12000: 18.443 ± 13.875 ns/op
+MapBenchmark.swissSimdPutMiss  784000: 112.932 ± 70.555 ns/op
+
+## Key observations
+- Benchmark measures SwissSimdMap (swissSimdPutHit/swissSimdPutMiss)
+- SwissSimdMap has independent putVal() using SIMD ByteVector — separate from SwissMap
+- Latest run shows high noise (iter-014 regression + revert state)
+- PutHit@12K jumped to 10.788 from 5.954 claimed base — likely noise from iter-014 revert
+- PutMiss tombstone state: PutHitState has tombstones==0 (no removes), PutMissState has tombstones=1
+
+## SwissSimdMap.putVal() current hot path analysis
+- No tombstones==0 fast path (unlike SwissMap iter-006)
+- Always tracks firstTombstone even when tombstones==0
+- SIMD scan: v.eq(h2).toLong() + v.eq(EMPTY).toLong() + v.eq(DELETED).toLong() (3 SIMD ops)
+- With tombstones==0: v.eq(DELETED).toLong() is never needed

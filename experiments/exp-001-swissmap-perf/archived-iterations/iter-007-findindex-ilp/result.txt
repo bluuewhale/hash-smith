@@ -1,0 +1,21 @@
+# Benchmark Result — iter-007-findindex-ilp
+# Source: benchmark-results/2026-04-04_22-55-30_swissmap.json
+
+Benchmark                      (size)  Mode  Cnt    Score     Error  Units
+MapBenchmark.swissSimdPutHit    12000  avgt    3    9.014 ±   0.986  ns/op
+MapBenchmark.swissSimdPutHit    48000  avgt    3   10.344 ±   4.296  ns/op
+MapBenchmark.swissSimdPutHit   196000  avgt    3   14.057 ±  17.424  ns/op
+MapBenchmark.swissSimdPutHit   784000  avgt    3   28.162 ±   4.208  ns/op
+MapBenchmark.swissSimdPutMiss   12000  avgt    3   17.465 ±   1.579  ns/op
+MapBenchmark.swissSimdPutMiss   48000  avgt    3   28.258 ±  12.619  ns/op
+MapBenchmark.swissSimdPutMiss  196000  avgt    3   56.436 ±  15.354  ns/op
+MapBenchmark.swissSimdPutMiss  784000  avgt    3  123.172 ± 164.578  ns/op
+
+## Delta vs Baseline (7.921/28.689/18.443/112.932)
+PutHit@12K:   9.014 vs 7.921  → +13.8% WORSE ❌ (exceeds +10% threshold)
+PutHit@784K:  28.162 vs 28.689 → -1.8% ✅
+PutMiss@12K:  17.465 vs 18.443 → -5.3% ✅
+PutMiss@784K: 123.172 vs 112.932 → +9.1% WORSE ⚠️ (near threshold, high error ±164.578)
+
+## Decision: REVERT ❌
+PutHit@12K regression (+13.8%) exceeds the +10% worse-than-baseline limit.
