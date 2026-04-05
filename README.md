@@ -102,9 +102,8 @@ dependencies {
 </table>
 
 ## Benchmark (JMH, CPU ns/op)
-- `SwissMap` numbers: Eclipse Temurin JDK 21, macOS/Apple Silicon, `AverageTime` mode (exp-001 optimized).
-- `HashMap`, `UnifiedMap`, `fastutil` numbers: Eclipse Temurin JDK 21.0.9, Windows 11, AMD Ryzen 5 5600.
-- Hardware differs across implementations — use as directional reference, not an apples-to-apples comparison.
+- All benchmarks run on the same machine: Eclipse Temurin JDK 21, macOS/Apple Silicon, `AverageTime` mode, 3 forks.
+- SwissMap numbers reflect exp-001 optimizations.
 
 | put hit                                     | put miss                                      |
 |---------------------------------------------|-----------------------------------------------|
