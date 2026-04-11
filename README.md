@@ -55,13 +55,13 @@ swissSet.contains("k"); // true
 - Gradle (Kotlin DSL):
 ```kotlin
 dependencies {
-    implementation("io.github.bluuewhale:hashsmith:0.1.8")
+    implementation("io.github.bluuewhale:hashsmith:0.2.0")
 }
 ```
 - Gradle (Groovy):
 ```groovy
 dependencies {
-    implementation 'io.github.bluuewhale:hashsmith:0.1.8'
+    implementation 'io.github.bluuewhale:hashsmith:0.2.0'
 }
 ```
 - Maven:
@@ -69,7 +69,7 @@ dependencies {
 <dependency>
   <groupId>io.github.bluuewhale</groupId>
   <artifactId>hashsmith</artifactId>
-  <version>0.1.8</version>
+  <version>0.2.0</version>
 </dependency>
 ```
 
